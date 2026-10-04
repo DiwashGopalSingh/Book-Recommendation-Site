@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Navbar, CoverflowHero, ShelfSection, ALL_GENRE_SHELVES } from '@/components/library';
+import { Navbar, CoverflowHero, ShelfSection, ALL_GENRE_SHELVES, PersonalizedRecommendationsSection } from '@/components/library';
 import {
   checkIsAuthenticated,
   clearStaleSession,
@@ -89,6 +89,12 @@ export default function CommunityLibraryPage() {
           savedBooks={savedBooks}
         />
       </section>
+
+      {/* Stage B: Personalized RecSys Section Based on User Shelves */}
+      <PersonalizedRecommendationsSection
+        savedBooks={savedBooks}
+        onShelfToggle={handleShelfToggle}
+      />
 
       {/* Genre Exploration Banner & Pills Bar */}
       <div className="sticky top-0 z-30 border-y border-white/10 bg-neutral-950/90 backdrop-blur-md px-4 py-3 shadow-lg">

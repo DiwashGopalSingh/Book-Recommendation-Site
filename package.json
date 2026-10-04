@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "tsx src/lib/db/migrate.ts",
-    "db:seed": "tsx src/lib/db/seed.ts"
+    "db:seed": "tsx src/lib/db/seed.ts",
+    "reco:build": "node scripts/build-similarity-matrix.js",
+    "reco:py": "python scripts/generate-book-embeddings.py"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",

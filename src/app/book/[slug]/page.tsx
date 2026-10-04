@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getBookBySlug } from "@/lib/catalog/queries";
+import { getSimilarBooks } from "@/lib/recommend/engine";
+import { SimilarBooksSection } from "@/components/library";
 import { BookOpen, Star, ArrowLeft, Bookmark, Check, ShieldCheck, Heart, ExternalLink, Calendar, Layers, Globe } from "lucide-react";
 import BookDetailClientActions from "./BookDetailClientActions";
 
@@ -21,6 +23,7 @@ export default async function BookDetailPage({ params }: BookPageProps) {
   const { work, author, editions, subjects } = data;
   const primaryEdition = editions[0];
   const coverUrl = primaryEdition?.coverUrl || "/books/moby-dick.jpg";
+  const similarBooks = getSimilarBooks(slug, 6);
 
   return (
     <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
@@ -182,6 +185,12 @@ export default async function BookDetailPage({ params }: BookPageProps) {
             )}
           </div>
         </div>
+
+        {/* Stage A: Content-Based Similar Books & Readers Also Enjoyed */}
+        <SimilarBooksSection
+          currentBookTitle={work.title}
+          similarBooks={similarBooks}
+        />
       </main>
     </div>
   );
