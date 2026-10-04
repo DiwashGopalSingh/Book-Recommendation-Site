@@ -3,13 +3,27 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar, CoverflowHero, ShelfSection, ALL_GENRE_SHELVES, PersonalizedRecommendationsSection } from '@/components/library';
+import { AuthTabs } from '@/components/auth';
 import {
   checkIsAuthenticated,
   clearStaleSession,
   getCurrentUser,
+  signInUser,
+  signUpUser,
+  logoutUser,
+  DUMMY_ACCOUNT,
   UserProfile,
 } from '@/lib/auth';
-import { BookOpen, ShieldCheck, Sparkles, Lock, Layers, Compass, CheckCircle2 } from 'lucide-react';
+import {
+  BookOpen,
+  ShieldCheck,
+  Sparkles,
+  Lock,
+  Layers,
+  Compass,
+  CheckCircle2,
+  KeyRound,
+} from 'lucide-react';
 
 export default function CommunityLibraryPage() {
   const router = useRouter();
@@ -18,6 +32,42 @@ export default function CommunityLibraryPage() {
   const [savedBooks, setSavedBooks] = useState<string[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [activeGenreFilter, setActiveGenreFilter] = useState<string>('all');
+
+  // Login form state
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
+
+  // Check authentication on mount - opens with Login section unless actively signed in
+  useEffect(() => {
+    const hasActiveSession =
+      typeof window !== 'undefined' &&
+      sessionStorage.getItem('library_active_session') === 'true';
+
+    if (hasActiveSession && checkIsAuthenticated()) {
+      setCurrentUser(getCurrentUser());
+    } else {
+      setCurrentUser(null);
+    }
+    setAuthChecked(true);
+
+    const handleAuthChanged = (e: Event) => {
+      const customEvt = e as CustomEvent;
+      if (customEvt?.detail?.user) {
+        setCurrentUser(customEvt.detail.user);
+      } else {
+        setCurrentUser(null);
+      }
+    };
+
+    window.addEventListener('auth-changed', handleAuthChanged);
+    return () => window.removeEventListener('auth-changed', handleAuthChanged);
+  }, []);
 
   // Load real saved shelves on mount
   useEffect(() => {
@@ -53,17 +103,60 @@ export default function CommunityLibraryPage() {
     };
   }, []);
 
-  useEffect(() => {
-    // Clear any stale/mismatched session data first
-    clearStaleSession();
+  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    if (authError) setAuthError(null);
+  };
 
-    if (!checkIsAuthenticated()) {
-      router.replace('/login');
+  const handleToggleMode = () => {
+    setIsSignUp((prev) => !prev);
+    setAuthError(null);
+  };
+
+  const handleAutoFillDemo = () => {
+    setFormData({
+      name: DUMMY_ACCOUNT.name,
+      email: DUMMY_ACCOUNT.email,
+      password: DUMMY_ACCOUNT.password,
+    });
+    setAuthError(null);
+    setStatusMessage('Demo credentials filled! Click "Sign In to Account" to enter.');
+    setTimeout(() => setStatusMessage(null), 3000);
+  };
+
+  const handleLoginSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError(null);
+
+    if (isSignUp) {
+      const result = signUpUser(formData.name, formData.email, formData.password);
+      if (result.success && result.user) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('library_active_session', 'true');
+        }
+        setStatusMessage(`Account created! Welcome, ${result.user.name}!`);
+        setCurrentUser(result.user);
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else {
+        setAuthError(result.error || 'Failed to create account.');
+      }
+      setAuthLoading(false);
     } else {
-      setCurrentUser(getCurrentUser());
-      setAuthChecked(true);
+      const result = signInUser(formData.email, formData.password);
+      if (result.success && result.user) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('library_active_session', 'true');
+        }
+        setStatusMessage(`Welcome back, ${result.user.name}! Opening library...`);
+        setCurrentUser(result.user);
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else {
+        setAuthError(result.error || 'Invalid credentials.');
+      }
+      setAuthLoading(false);
     }
-  }, [router]);
+  };
 
   const handleShelfToggle = async (bookId: string) => {
     const isCurrentlySaved = savedBooks.includes(bookId);
@@ -110,18 +203,165 @@ export default function CommunityLibraryPage() {
     }
   };
 
-  // Show loading/redirect screen while auth is being checked
+  // SSR loading skeleton
   if (!authChecked) {
     return (
       <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center text-white px-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-500/20 text-teal-400 border border-teal-500/30 mb-4 animate-pulse">
           <Lock className="h-6 w-6" />
         </div>
-        <p className="text-sm font-medium text-neutral-300">Checking membership authentication...</p>
-        <p className="text-xs text-neutral-500 mt-1">Redirecting to member sign in...</p>
+        <p className="text-sm font-medium text-neutral-300">Opening library portal...</p>
       </div>
     );
   }
+
+  // =========================================================================
+  // 1. FIRST SCREEN: LOGIN SECTION (Opens with login section if not signed in)
+  // =========================================================================
+  if (!currentUser) {
+    const signInFields = {
+      header: 'Sign In to Library',
+      subHeader: 'Access your private reading shelves, bookmarks, and public-domain catalog.',
+      errorField: authError || undefined,
+      fields: [
+        {
+          id: 'email',
+          label: 'Email Address',
+          required: true,
+          placeholder: 'reader@library.community',
+          type: 'email' as const,
+          value: formData.email,
+          onChange: handleInputChange('email'),
+        },
+        {
+          id: 'password',
+          label: 'Password',
+          required: true,
+          placeholder: '••••••••',
+          type: 'password' as const,
+          value: formData.password,
+          onChange: handleInputChange('password'),
+        },
+      ],
+      submitButton: authLoading ? 'Signing In...' : 'Sign In to Account',
+      textVariantButton: "Don't have an account? Create Free Account",
+    };
+
+    const signUpFields = {
+      header: 'Create Free Account',
+      subHeader: 'Join the community library. 100% free, private shelves, zero tracking.',
+      errorField: authError || undefined,
+      fields: [
+        {
+          id: 'name',
+          label: 'Display Name / Nickname',
+          required: true,
+          placeholder: 'e.g. Elizabeth Bennet',
+          type: 'text' as const,
+          value: formData.name,
+          onChange: handleInputChange('name'),
+        },
+        {
+          id: 'email',
+          label: 'Email Address',
+          required: true,
+          placeholder: 'reader@library.community',
+          type: 'email' as const,
+          value: formData.email,
+          onChange: handleInputChange('email'),
+        },
+        {
+          id: 'password',
+          label: 'Password',
+          required: true,
+          placeholder: '•••••••• (min 6 characters)',
+          type: 'password' as const,
+          value: formData.password,
+          onChange: handleInputChange('password'),
+        },
+      ],
+      submitButton: authLoading ? 'Creating Account...' : 'Create Free Account',
+      textVariantButton: 'Already have an account? Sign In',
+    };
+
+    return (
+      <main className="relative min-h-screen w-full bg-neutral-950 overflow-hidden">
+        {/* Floating Toast Notification */}
+        {statusMessage && (
+          <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-neutral-900/95 px-4 py-3 text-sm text-teal-300 shadow-2xl backdrop-blur-md border border-teal-500/30 animate-in fade-in slide-in-from-bottom-3 duration-300">
+            <Sparkles className="h-4 w-4 text-amber-400" />
+            <span>{statusMessage}</span>
+          </div>
+        )}
+
+        {/* Top Header */}
+        <header className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="font-serif text-base font-bold text-white tracking-wide">
+                Open Classics
+              </span>
+              <span className="hidden sm:inline-block ml-2 text-[10px] uppercase font-semibold text-teal-400 bg-teal-950/80 border border-teal-500/30 px-1.5 py-0.5 rounded">
+                Member Portal
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs text-neutral-400">
+            <ShieldCheck className="h-4 w-4 text-emerald-400" />
+            <span className="hidden sm:inline">Tracker-Free · Private Reading Protection</span>
+          </div>
+        </header>
+
+        {/* Auth Box & Background */}
+        <AuthTabs
+          formFields={isSignUp ? signUpFields : signInFields}
+          handleSubmit={handleLoginSubmit}
+          goTo={handleToggleMode}
+        >
+          {/* Quick 1-Click Demo Fill Card */}
+          {!isSignUp && (
+            <div className="rounded-xl border border-teal-500/30 bg-teal-950/40 p-3.5 text-left backdrop-blur-sm shadow-inner transition-all hover:border-teal-500/50 mt-2">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-teal-300">
+                  <KeyRound className="h-3.5 w-3.5 text-amber-400" />
+                  Dummy Test Account
+                </span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-teal-400/80 bg-teal-900/50 px-1.5 py-0.5 rounded border border-teal-500/20">
+                  Instant Access
+                </span>
+              </div>
+              <div className="mt-2 text-xs text-neutral-300 space-y-0.5 font-mono">
+                <p>
+                  <span className="text-neutral-500">Email:</span>{' '}
+                  <span className="text-teal-200 select-all">{DUMMY_ACCOUNT.email}</span>
+                </p>
+                <p>
+                  <span className="text-neutral-500">Password:</span>{' '}
+                  <span className="text-teal-200 select-all">{DUMMY_ACCOUNT.password}</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleAutoFillDemo}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 py-2 text-xs font-semibold text-teal-200 hover:text-white transition-all active:scale-98 cursor-pointer"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                <span>Auto-Fill Demo Credentials</span>
+              </button>
+            </div>
+          )}
+        </AuthTabs>
+      </main>
+    );
+  }
+
+  // =========================================================================
+  // 2. MAIN SECTION: COMMUNITY LIBRARY (Shown after user logs in)
+  // =========================================================================
 
   const displayedShelves =
     activeGenreFilter === 'all'

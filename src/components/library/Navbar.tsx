@@ -158,7 +158,11 @@ export function Navbar({ onOpenAuth, savedCount }: NavbarProps) {
   const handleLogout = () => {
     logoutUser();
     setUser(null);
-    router.push('/login');
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('library_active_session');
+      window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null } }));
+    }
+    router.push('/');
   };
 
   return (

@@ -25,9 +25,16 @@ function LoginContent() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (checkIsAuthenticated()) {
+    const hasActiveSession =
+      typeof window !== 'undefined' &&
+      sessionStorage.getItem('library_active_session') === 'true';
+
+    if (hasActiveSession && checkIsAuthenticated()) {
       setIsLoggedIn(true);
       setCurrentUser(getCurrentUser());
+    } else {
+      setIsLoggedIn(false);
+      setCurrentUser(null);
     }
   }, []);
 
@@ -61,6 +68,9 @@ function LoginContent() {
     if (isSignUp) {
       const result = signUpUser(formData.name, formData.email, formData.password);
       if (result.success) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('library_active_session', 'true');
+        }
         setToastMessage(`Account created! Welcome, ${result.user?.name || 'Reader'}!`);
         setTimeout(() => {
           router.push(redirectTarget);
@@ -72,6 +82,9 @@ function LoginContent() {
     } else {
       const result = signInUser(formData.email, formData.password);
       if (result.success) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('library_active_session', 'true');
+        }
         setToastMessage(`Signed in as ${result.user?.name}! Opening library...`);
         setTimeout(() => {
           router.push(redirectTarget);

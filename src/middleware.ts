@@ -1,15 +1,16 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Always allow Next.js internals, static files, api routes, and the login page
+  // 1. Always allow Next.js internals, static files, api routes, home page, and login page
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/books') ||
     pathname.includes('.') ||
+    pathname === '/' ||
     pathname === '/login'
   ) {
     return NextResponse.next();
