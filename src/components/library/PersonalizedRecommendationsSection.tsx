@@ -64,42 +64,42 @@ export default function PersonalizedRecommendationsSection({
   if (!data || data.recommendations.length === 0) return null;
 
   return (
-    <section className="relative mx-auto max-w-[1400px] px-4 py-10">
-      {/* Background Glow */}
-      <div className="absolute inset-0 bg-gradient-to-r from-teal-500/5 via-purple-500/5 to-amber-500/5 rounded-3xl -z-10 blur-xl pointer-events-none" />
+    <section className="relative mx-auto max-w-[1400px] px-4 py-8">
+      {/* Background Subtle Warm Tint */}
+      <div className="absolute inset-0 bg-gradient-to-r from-amber-200/15 via-teal-200/10 to-stone-200/15 rounded-3xl -z-10 blur-xl pointer-events-none" />
 
       {/* Header Container */}
-      <div className="rounded-2xl border border-white/10 bg-neutral-900/80 backdrop-blur-xl p-6 md:p-8 shadow-2xl mb-8">
+      <div className="rounded-2xl border border-[#E5DDD0] bg-white/95 backdrop-blur-xl p-6 md:p-8 shadow-sm mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-teal-300 border border-teal-500/30">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-700/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-teal-800 border border-teal-700/20">
                 <Sparkles className="h-3.5 w-3.5" />
                 {data.isColdStart ? 'Curated Taste Foundations' : 'Dynamic Taste Profile'}
               </span>
 
               {!data.isColdStart && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400 border border-emerald-500/20">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-700/10 px-2.5 py-0.5 text-xs font-medium text-emerald-800 border border-emerald-700/20">
                   <Check className="h-3 w-3" />
                   {savedBooks.length} Books on Shelf
                 </span>
               )}
             </div>
 
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight">
+            <h2 className="text-2xl md:text-3xl font-serif font-bold text-stone-900 tracking-tight">
               {data.isColdStart ? 'Recommended For You · Curator Highlights' : 'Recommended For You · Tailored Selections'}
             </h2>
 
-            <p className="mt-1 text-sm text-neutral-300 max-w-2xl leading-relaxed flex items-start gap-1.5">
-              <Info className="h-4 w-4 text-teal-400 flex-none mt-0.5" />
+            <p className="mt-1 text-sm text-stone-600 max-w-2xl leading-relaxed flex items-start gap-1.5">
+              <Info className="h-4 w-4 text-teal-700 flex-none mt-0.5" />
               <span>{data.explanationNote}</span>
             </p>
           </div>
 
-          <div className="flex flex-col items-start md:items-end gap-1 text-xs text-neutral-400">
-            <span className="font-semibold text-neutral-200">Recommender Transparency</span>
-            <span className="text-[11px] text-neutral-400">
-              No private trackers · Local vector & subject affinity
+          <div className="flex flex-col items-start md:items-end gap-1 text-xs text-stone-500">
+            <span className="font-semibold text-stone-700">Recommender Transparency</span>
+            <span className="text-[11px] text-stone-500">
+              No private trackers · Local vector &amp; subject affinity
             </span>
           </div>
         </div>
@@ -112,10 +112,10 @@ export default function PersonalizedRecommendationsSection({
             return (
               <div
                 key={book.slug}
-                className="group relative flex flex-col justify-between rounded-xl bg-neutral-950/70 border border-white/10 hover:border-teal-500/50 p-3 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                className="group relative flex flex-col justify-between rounded-xl bg-[#FAF7F2] border border-[#E5DDD0] hover:border-teal-600 p-3 shadow-xs hover:shadow-md transition-all duration-300 transform hover:-translate-y-1"
               >
                 {/* Book Cover */}
-                <Link href={`/book/${book.slug}`} className="block relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-neutral-900 mb-3">
+                <Link href={`/book/${book.slug}`} className="block relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-stone-100 mb-3 shadow-xs">
                   <img
                     src={book.coverUrl}
                     alt={book.title}
@@ -123,12 +123,12 @@ export default function PersonalizedRecommendationsSection({
                     loading="lazy"
                   />
                   {/* Match Percentage Badge */}
-                  <div className="absolute top-2 right-2 bg-neutral-950/90 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30 backdrop-blur-sm">
+                  <div className="absolute top-2 right-2 bg-white/95 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-600/30 backdrop-blur-xs shadow-xs">
                     {book.matchPercentage}% Match
                   </div>
 
                   {/* Genre Tag */}
-                  <div className="absolute bottom-2 left-2 bg-neutral-950/80 text-neutral-300 text-[9px] font-medium px-1.5 py-0.5 rounded backdrop-blur-xs">
+                  <div className="absolute bottom-2 left-2 bg-white/95 text-stone-700 text-[9px] font-medium px-1.5 py-0.5 rounded border border-stone-200 backdrop-blur-xs">
                     {book.genreBadge}
                   </div>
                 </Link>
@@ -138,18 +138,18 @@ export default function PersonalizedRecommendationsSection({
                   <div>
                     <Link
                       href={`/book/${book.slug}`}
-                      className="font-serif font-bold text-sm text-neutral-100 hover:text-teal-400 line-clamp-1 transition-colors"
+                      className="font-serif font-bold text-sm text-stone-900 hover:text-teal-700 line-clamp-1 transition-colors"
                     >
                       {book.title}
                     </Link>
-                    <p className="text-xs text-neutral-400 line-clamp-1 mt-0.5">
+                    <p className="text-xs text-stone-500 line-clamp-1 mt-0.5">
                       {book.authorName}
                     </p>
                   </div>
 
                   {/* Reason Pill */}
-                  <div className="mt-2.5 pt-2 border-t border-white/5">
-                    <p className="text-[10px] text-teal-300 line-clamp-2 leading-tight">
+                  <div className="mt-2.5 pt-2 border-t border-[#EAE3D6]">
+                    <p className="text-[10px] font-medium text-teal-800 line-clamp-2 leading-tight">
                       {book.reason}
                     </p>
                   </div>
@@ -157,15 +157,15 @@ export default function PersonalizedRecommendationsSection({
                   {/* Shelf Action Button */}
                   <button
                     onClick={() => onShelfToggle(book.slug)}
-                    className={`mt-3 w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all ${
+                    className={`mt-3 w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                       isSaved
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30'
-                        : 'bg-white/10 text-neutral-200 border border-white/10 hover:bg-teal-500 hover:text-neutral-950'
+                        ? 'bg-emerald-700/15 text-emerald-800 border border-emerald-700/30 hover:bg-emerald-700/25'
+                        : 'bg-[#EFE9DF] text-stone-800 border border-[#DDD5C7] hover:bg-teal-700 hover:text-white'
                     }`}
                   >
                     {isSaved ? (
                       <>
-                        <Check className="h-3.5 w-3.5 text-emerald-400" />
+                        <Check className="h-3.5 w-3.5 text-emerald-700" />
                         <span>Shelved</span>
                       </>
                     ) : (

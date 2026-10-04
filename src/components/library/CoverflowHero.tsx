@@ -331,30 +331,30 @@ export function CoverflowHero({
   };
 
   return (
-    <section className="relative w-full overflow-hidden bg-neutral-950 py-10 md:py-16 text-white select-none">
-      {/* Subtle Atmospheric Background Glow */}
+    <section className="relative w-full overflow-hidden bg-[#FAF7F2] py-10 md:py-16 text-stone-900 select-none">
+      {/* Subtle Atmospheric Warm Cream Glow */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[360px] bg-teal-950/25 blur-[130px] rounded-full" />
-        <div className="absolute top-1/3 left-1/3 w-[450px] h-[260px] bg-indigo-950/25 blur-[110px] rounded-full" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[360px] bg-amber-200/25 blur-[140px] rounded-full" />
+        <div className="absolute top-1/3 left-1/3 w-[450px] h-[260px] bg-teal-200/20 blur-[120px] rounded-full" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
         {/* Header Title with Design System Typography */}
         <div className="text-center mb-6 md:mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-teal-500/30 bg-teal-950/50 text-xs font-semibold text-teal-300 mb-2.5 backdrop-blur-md shadow-sm">
-            <Flame className="w-3.5 h-3.5 text-amber-400" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-amber-600/30 bg-amber-100/70 text-xs font-bold text-amber-900 mb-2.5 backdrop-blur-md shadow-xs">
+            <Flame className="w-3.5 h-3.5 text-amber-600" />
             Most Popular Landmark Books
           </div>
-          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-stone-900">
             Discover Your Next Chapter
           </h1>
-          <p className="mt-2 text-xs sm:text-sm text-neutral-400 max-w-xl mx-auto">
+          <p className="mt-2 text-xs sm:text-sm text-stone-600 max-w-xl mx-auto">
             14 of the world’s most celebrated literary classics. Drag or swipe across the rack to explore.
           </p>
 
           {/* Interactive Drag Hint */}
-          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-neutral-900/60 px-3 py-1 text-[11px] text-neutral-300 backdrop-blur-sm">
-            <MoveHorizontal className="w-3 h-3 text-teal-400 animate-pulse" />
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#E5DDD0] bg-white/90 px-3.5 py-1 text-[11px] font-medium text-stone-700 shadow-xs backdrop-blur-sm">
+            <MoveHorizontal className="w-3 h-3 text-teal-700 animate-pulse" />
             <span>Click &amp; Drag horizontally to slide books</span>
           </div>
         </div>
@@ -366,7 +366,7 @@ export function CoverflowHero({
             <button
               onClick={prevSlide}
               aria-label="Previous Book"
-              className="p-2 sm:p-2.5 rounded-full border border-white/15 bg-neutral-900/85 text-neutral-200 hover:text-white hover:bg-neutral-800 transition-all hover:scale-105 active:scale-95 backdrop-blur-md shadow-xl"
+              className="p-2 sm:p-2.5 rounded-full border border-[#E5DDD0] bg-white text-stone-700 hover:text-stone-900 hover:bg-[#FAF7F2] transition-all hover:scale-105 active:scale-95 shadow-md"
             >
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
@@ -376,7 +376,7 @@ export function CoverflowHero({
             <button
               onClick={nextSlide}
               aria-label="Next Book"
-              className="p-2 sm:p-2.5 rounded-full border border-white/15 bg-neutral-900/85 text-neutral-200 hover:text-white hover:bg-neutral-800 transition-all hover:scale-105 active:scale-95 backdrop-blur-md shadow-xl"
+              className="p-2 sm:p-2.5 rounded-full border border-[#E5DDD0] bg-white text-stone-700 hover:text-stone-900 hover:bg-[#FAF7F2] transition-all hover:scale-105 active:scale-95 shadow-md"
             >
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
@@ -454,12 +454,12 @@ export function CoverflowHero({
                   <div
                     className={`relative w-44 h-64 sm:w-56 sm:h-80 rounded-lg overflow-hidden transition-all duration-300 ${
                       Math.abs(effectiveOffset) < 0.5
-                        ? 'ring-2 ring-teal-400/60 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_35px_rgba(20,184,166,0.3)]'
-                        : 'shadow-[0_12px_30px_rgba(0,0,0,0.85)] filter brightness-85 hover:brightness-105'
+                        ? 'ring-2 ring-teal-600 shadow-[0_20px_45px_rgba(50,30,10,0.22),0_0_35px_rgba(13,148,136,0.25)]'
+                        : 'shadow-[0_12px_28px_rgba(50,30,10,0.12)] filter brightness-95 hover:brightness-100'
                     }`}
                   >
                     {/* Spine Realistic Depth Gradient */}
-                    <div className="pointer-events-none absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-white/20 via-black/40 to-transparent z-10" />
+                    <div className="pointer-events-none absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-white/30 via-black/30 to-transparent z-10" />
 
                     <Image
                       src={book.cover}
@@ -472,17 +472,17 @@ export function CoverflowHero({
 
                     {/* Badge Top Left */}
                     <div className="absolute top-2 left-2 z-20">
-                      <span className="px-2 py-0.5 rounded bg-black/85 backdrop-blur-md text-[10px] font-semibold tracking-wider uppercase text-teal-300 border border-teal-500/30">
+                      <span className="px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-[10px] font-semibold tracking-wider uppercase text-teal-300 border border-teal-500/30">
                         {book.audience}
                       </span>
                     </div>
 
                     {/* Book Spine / Genre Top Banner */}
-                    <div className="absolute top-0 inset-x-0 bg-neutral-950/85 py-1 px-2 flex items-center justify-between z-10 border-b border-white/10">
+                    <div className="absolute top-0 inset-x-0 bg-neutral-950/80 py-1 px-2 flex items-center justify-between z-10 border-b border-white/10">
                       <span className="text-[9px] font-bold tracking-widest uppercase text-white">
                         CLASSIC
                       </span>
-                      <span className="text-[9px] font-semibold text-neutral-400">
+                      <span className="text-[9px] font-semibold text-neutral-300">
                         {book.genre}
                       </span>
                     </div>
@@ -500,30 +500,30 @@ export function CoverflowHero({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25 }}
-              className="mt-6 w-full max-w-2xl rounded-xl border border-white/10 bg-neutral-900/85 p-5 sm:p-6 backdrop-blur-xl shadow-2xl text-center"
+              className="mt-6 w-full max-w-2xl rounded-2xl border border-[#E5DDD0] bg-white/95 p-5 sm:p-6 backdrop-blur-xl shadow-xl text-center text-stone-900"
             >
               {/* Reason Tag */}
-              <div className="inline-block text-xs font-semibold text-amber-400 bg-amber-950/40 border border-amber-500/30 px-3 py-1 rounded-full mb-2.5">
+              <div className="inline-block text-xs font-bold text-amber-900 bg-amber-100/90 border border-amber-300/80 px-3 py-1 rounded-full mb-2.5 shadow-xs">
                 ★ {currentBook.featuredReason}
               </div>
 
               {/* Title & Author */}
-              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
                 {currentBook.title}
               </h2>
-              <p className="text-sm font-medium text-teal-400 mt-1">
+              <p className="text-sm font-semibold text-teal-700 mt-1">
                 by {currentBook.author} ({currentBook.year})
               </p>
 
-              <p className="text-xs sm:text-sm text-neutral-300 mt-2.5 line-clamp-2 max-w-lg mx-auto leading-relaxed">
+              <p className="text-xs sm:text-sm text-stone-600 mt-2.5 line-clamp-2 max-w-lg mx-auto leading-relaxed">
                 {currentBook.description}
               </p>
 
               {/* Meta Stats Row */}
-              <div className="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-neutral-400">
+              <div className="mt-4 pt-3 border-t border-[#EAE3D6] flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-stone-500">
                 <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  <span className="font-semibold text-white">{currentBook.rating}</span>
+                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                  <span className="font-bold text-stone-900">{currentBook.rating}</span>
                   <span>({currentBook.ratingCount} reviews)</span>
                 </div>
                 <div>·</div>
@@ -539,8 +539,8 @@ export function CoverflowHero({
                   onClick={() => handleShelfChange(currentBook.id, 'want_to_read')}
                   className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     activeShelf[currentBook.id] === 'want_to_read' || savedBooks.includes(currentBook.id)
-                      ? 'bg-teal-500 text-white shadow-md'
-                      : 'border border-white/15 bg-neutral-800 text-neutral-200 hover:bg-neutral-700'
+                      ? 'bg-teal-700 text-white shadow-sm'
+                      : 'border border-[#DDD5C7] bg-[#F3EDE3] text-stone-800 hover:bg-[#EAE2D6]'
                   }`}
                 >
                   <Bookmark className="w-3.5 h-3.5" />
@@ -552,8 +552,8 @@ export function CoverflowHero({
                   onClick={() => handleShelfChange(currentBook.id, 'reading')}
                   className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     activeShelf[currentBook.id] === 'reading'
-                      ? 'bg-indigo-500 text-white shadow-md'
-                      : 'border border-white/15 bg-neutral-800 text-neutral-200 hover:bg-neutral-700'
+                      ? 'bg-indigo-700 text-white shadow-sm'
+                      : 'border border-[#DDD5C7] bg-[#F3EDE3] text-stone-800 hover:bg-[#EAE2D6]'
                   }`}
                 >
                   <BookOpen className="w-3.5 h-3.5" />
@@ -562,7 +562,7 @@ export function CoverflowHero({
 
                 <Link
                   href={`/book/${currentBook.id}`}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium text-neutral-200 bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium text-stone-800 bg-[#F3EDE3] hover:bg-[#EAE2D6] border border-[#DDD5C7] transition-all"
                 >
                   Book Details
                 </Link>
@@ -571,7 +571,7 @@ export function CoverflowHero({
                   href={currentBook.readUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-medium text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:brightness-110 shadow-md transition-all"
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-teal-700 to-emerald-700 hover:brightness-105 shadow-sm transition-all"
                 >
                   Read Free on Gutenberg &rarr;
                 </a>
@@ -587,7 +587,7 @@ export function CoverflowHero({
                 onClick={() => setActiveIndex(index)}
                 aria-label={`Go to slide ${index + 1}`}
                 className={`h-1.5 rounded-full transition-all ${
-                  index === activeIndex ? 'w-6 bg-teal-400' : 'w-1.5 bg-neutral-700 hover:bg-neutral-500'
+                  index === activeIndex ? 'w-6 bg-teal-700' : 'w-1.5 bg-stone-300 hover:bg-stone-400'
                 }`}
               />
             ))}
