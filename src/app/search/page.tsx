@@ -131,11 +131,11 @@ function SearchPageContent() {
   return (
     <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
       {/* Header */}
-      <header className="sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/90 border-b border-[var(--line)] px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-40 backdrop-blur-md bg-[var(--paper)]/90 border-b border-[var(--line)] px-3 sm:px-6 py-3 sm:py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2.5 sm:gap-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--shelf-teal)] transition-colors group flex-none"
+            className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-[var(--muted)] hover:text-[var(--shelf-teal)] transition-colors group flex-none"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
             <span className="hidden sm:inline">Back to Library</span>
@@ -143,19 +143,20 @@ function SearchPageContent() {
 
           {/* Search input in header */}
           <div className="relative flex-1 max-w-xl">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Search className="absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search 500 classics, authors, themes (e.g. Sherlock, Dracula, Space)..."
-              className="w-full h-10 pl-10 pr-9 rounded-xl bg-[var(--surface)] border border-[var(--line)] text-sm text-[var(--ink)] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--shelf-teal)]/40 transition-all shadow-sm"
+              placeholder="Search 500 books, authors, themes..."
+              className="w-full h-10 pl-9 sm:pl-10 pr-9 rounded-xl bg-[var(--surface)] border border-[var(--line)] text-base sm:text-sm text-[var(--ink)] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--shelf-teal)]/40 transition-all shadow-xs"
               autoFocus
             />
             {query && (
               <button
                 onClick={() => setQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-0.5 cursor-pointer"
+                className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-1 cursor-pointer"
+                aria-label="Clear query"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -169,7 +170,7 @@ function SearchPageContent() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Filter Bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--line)] mb-8">
           {/* Audience Filter Pills */}
