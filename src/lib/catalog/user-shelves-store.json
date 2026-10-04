@@ -1,0 +1,54 @@
+{
+  "the-hound-of-the-baskervilles": {
+    "id": "shelf_the-hound-of-the-baskervilles",
+    "slug": "the-hound-of-the-baskervilles",
+    "title": "The Hound of the Baskervilles",
+    "authorName": "Arthur Conan Doyle",
+    "coverUrl": "https://covers.openlibrary.org/b/id/9411873-M.jpg",
+    "genreBadge": "Mystery & Crime",
+    "genreSlug": "mystery-crime",
+    "status": "want_to_read",
+    "rating": 5,
+    "addedAt": "2026-10-04T09:53:46.033Z",
+    "updatedAt": "2026-10-04T09:53:46.033Z"
+  },
+  "the-time-machine": {
+    "id": "shelf_the-time-machine",
+    "slug": "the-time-machine",
+    "title": "The Time Machine",
+    "authorName": "H.G. Wells",
+    "coverUrl": "https://covers.openlibrary.org/b/id/8232043-M.jpg",
+    "genreBadge": "Sci-Fi",
+    "genreSlug": "sci-fi",
+    "status": "reading",
+    "rating": 4,
+    "addedAt": "2026-10-04T09:53:46.033Z",
+    "updatedAt": "2026-10-04T09:53:46.033Z"
+  },
+  "meditations": {
+    "id": "shelf_meditations",
+    "slug": "meditations",
+    "title": "Meditations",
+    "authorName": "Marcus Aurelius",
+    "coverUrl": "https://covers.openlibrary.org/b/id/12836246-M.jpg",
+    "genreBadge": "Philosophy",
+    "genreSlug": "philosophy",
+    "status": "read",
+    "rating": 5,
+    "addedAt": "2026-10-04T09:53:46.033Z",
+    "updatedAt": "2026-10-04T09:53:46.033Z"
+  },
+  "moby-dick": {
+    "id": "shelf_moby-dick",
+    "slug": "moby-dick",
+    "title": "Moby-Dick",
+    "authorName": "Herman Melville",
+    "coverUrl": "https://covers.openlibrary.org/b/id/8232141-M.jpg",
+    "genreBadge": "Adventure",
+    "genreSlug": "adventure",
+    "status": "want_to_read",
+    "rating": null,
+    "addedAt": "2026-10-04T09:53:46.033Z",
+    "updatedAt": "2026-10-04T09:53:46.033Z"
+  }
+}

@@ -18,6 +18,7 @@ import {
 import { checkIsAuthenticated, getCurrentUser, logoutUser, UserProfile } from '@/lib/auth';
 import { SearchResultBook } from '@/lib/catalog/search';
 import { SimilarBookMatch } from '@/lib/recommend/engine';
+import MyShelfModal from './MyShelfModal';
 
 interface NavbarProps {
   onOpenAuth?: () => void;
@@ -39,10 +40,51 @@ export function Navbar({ onOpenAuth, savedCount }: NavbarProps) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isShelfModalOpen, setIsShelfModalOpen] = useState(false);
+  const [shelfCount, setShelfCount] = useState(savedCount);
   const [loading, setLoading] = useState(false);
   const [liveResults, setLiveResults] = useState<SearchResultBook[]>([]);
   const [liveRecommendations, setLiveRecommendations] = useState<SimilarBookMatch[]>([]);
   const [totalResults, setTotalResults] = useState(0);
+
+  useEffect(() => {
+    setShelfCount(savedCount);
+  }, [savedCount]);
+
+  // Fetch real-time shelf count and listen for cross-component shelf changes
+  useEffect(() => {
+    let isMounted = true;
+    const loadRealShelfCount = async () => {
+      try {
+        const res = await fetch('/api/shelves');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && typeof data.totalShelved === 'number') {
+            setShelfCount(data.totalShelved);
+          }
+        }
+      } catch (err) {
+        // silent fallback
+      }
+    };
+
+    loadRealShelfCount();
+
+    const handleShelfUpdated = (e: Event) => {
+      const customEvt = e as CustomEvent;
+      if (typeof customEvt?.detail?.count === 'number') {
+        setShelfCount(customEvt.detail.count);
+      } else {
+        loadRealShelfCount();
+      }
+    };
+
+    window.addEventListener('shelf-updated', handleShelfUpdated);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('shelf-updated', handleShelfUpdated);
+    };
+  }, []);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -318,15 +360,17 @@ export function Navbar({ onOpenAuth, savedCount }: NavbarProps) {
 
         {/* User Actions */}
         <div className="flex items-center gap-3 flex-none">
-          {/* Shelves indicator */}
-          <Link
-            href="/#user-shelves"
-            className="flex items-center gap-1.5 text-xs text-neutral-300 px-3 py-1.5 rounded-lg border border-white/10 bg-neutral-900/60 hover:border-teal-500/40 transition-colors"
+          {/* Shelves indicator (Opens My Shelf Modal) */}
+          <button
+            type="button"
+            onClick={() => setIsShelfModalOpen(true)}
+            className="flex items-center gap-1.5 text-xs text-neutral-300 px-3 py-1.5 rounded-lg border border-white/10 bg-neutral-900/60 hover:border-teal-500/40 hover:bg-neutral-900 transition-all cursor-pointer"
+            title="Open My Reading Shelf"
           >
             <Bookmark className="h-3.5 w-3.5 text-teal-400" />
             <span className="hidden sm:inline">My Shelf:</span>
-            <span className="font-semibold text-white">{savedCount}</span>
-          </Link>
+            <span className="font-semibold text-white">{shelfCount}</span>
+          </button>
 
           {user ? (
             /* Logged-In User Profile & Sign Out */
@@ -355,6 +399,13 @@ export function Navbar({ onOpenAuth, savedCount }: NavbarProps) {
           )}
         </div>
       </div>
+
+      {/* Interactive My Shelf Modal */}
+      <MyShelfModal
+        isOpen={isShelfModalOpen}
+        onClose={() => setIsShelfModalOpen(false)}
+        onShelfUpdated={(cnt) => setShelfCount(cnt)}
+      />
     </header>
   );
 }

@@ -15,15 +15,43 @@ export default function CommunityLibraryPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [savedBooks, setSavedBooks] = useState<string[]>([
-    'the-hound-of-the-baskervilles',
-    'the-time-machine',
-    'meditations',
-    'moby-dick',
-    'pride-and-prejudice',
-  ]);
+  const [savedBooks, setSavedBooks] = useState<string[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [activeGenreFilter, setActiveGenreFilter] = useState<string>('all');
+
+  // Load real saved shelves on mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchShelvedBooks = async () => {
+      try {
+        const res = await fetch('/api/shelves');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && Array.isArray(data.shelves)) {
+            const identifiers = data.shelves.flatMap((s: { work_id: string; slug: string }) => [
+              s.work_id,
+              s.slug,
+            ]);
+            setSavedBooks(Array.from(new Set(identifiers)));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load user shelves:', err);
+      }
+    };
+
+    fetchShelvedBooks();
+
+    const handleShelfUpdated = () => {
+      fetchShelvedBooks();
+    };
+
+    window.addEventListener('shelf-updated', handleShelfUpdated);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('shelf-updated', handleShelfUpdated);
+    };
+  }, []);
 
   useEffect(() => {
     // Clear any stale/mismatched session data first
@@ -37,16 +65,49 @@ export default function CommunityLibraryPage() {
     }
   }, [router]);
 
-  const handleShelfToggle = (bookId: string) => {
-    setSavedBooks((prev) => {
-      const exists = prev.includes(bookId);
-      const updated = exists ? prev.filter((id) => id !== bookId) : [...prev, bookId];
-      setStatusMessage(
-        exists ? 'Book removed from your private shelf' : 'Book added to your "Want to Read" shelf'
+  const handleShelfToggle = async (bookId: string) => {
+    const isCurrentlySaved = savedBooks.includes(bookId);
+    const newStatus = isCurrentlySaved ? 'remove' : 'want_to_read';
+
+    // Optimistic UI update
+    setSavedBooks((prev) =>
+      isCurrentlySaved ? prev.filter((id) => id !== bookId) : [...prev, bookId]
+    );
+
+    setStatusMessage(
+      isCurrentlySaved
+        ? 'Book removed from your private shelf'
+        : 'Book added to your "Want to Read" shelf'
+    );
+    setTimeout(() => setStatusMessage(null), 3000);
+
+    try {
+      const res = await fetch('/api/shelves', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: bookId, status: newStatus }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('shelf-updated', { detail: { count: data.totalShelved } })
+          );
+        }
+      } else {
+        // Revert on failure
+        setSavedBooks((prev) =>
+          isCurrentlySaved ? [...prev, bookId] : prev.filter((id) => id !== bookId)
+        );
+      }
+    } catch (err) {
+      console.error('Error toggling shelf item:', err);
+      // Revert on network failure
+      setSavedBooks((prev) =>
+        isCurrentlySaved ? [...prev, bookId] : prev.filter((id) => id !== bookId)
       );
-      setTimeout(() => setStatusMessage(null), 3000);
-      return updated;
-    });
+    }
   };
 
   // Show loading/redirect screen while auth is being checked

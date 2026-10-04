@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bookmark, Check, Star, BookOpen, Clock, Heart } from "lucide-react";
+import { Bookmark, Check, Star, BookOpen, Clock, Heart, Trash2 } from "lucide-react";
 
 interface Props {
   workId: string;
@@ -17,7 +17,8 @@ export default function BookDetailClientActions({ workId, workSlug }: Props) {
   useEffect(() => {
     async function loadShelfStatus() {
       try {
-        const res = await fetch(`/api/shelves?workId=${workId}`);
+        const queryParam = workSlug ? `slug=${encodeURIComponent(workSlug)}` : `workId=${workId}`;
+        const res = await fetch(`/api/shelves?${queryParam}`);
         const data = await res.json();
         if (data.entry) {
           setStatus(data.entry.status);
@@ -28,7 +29,7 @@ export default function BookDetailClientActions({ workId, workSlug }: Props) {
       }
     }
     loadShelfStatus();
-  }, [workId]);
+  }, [workId, workSlug]);
 
   const handleShelfChange = async (newStatus: string) => {
     const updatedStatus = status === newStatus ? null : newStatus;
@@ -48,10 +49,16 @@ export default function BookDetailClientActions({ workId, workSlug }: Props) {
       });
 
       if (res.ok) {
+        const data = await res.json();
         setSavedMessage(
           updatedStatus ? `Added to "${formatShelfName(updatedStatus)}"` : "Removed from shelves"
         );
         setTimeout(() => setSavedMessage(null), 3000);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("shelf-updated", { detail: { count: data.totalShelved } })
+          );
+        }
       }
     } catch (err) {
       console.error("Failed to update shelf:", err);
@@ -166,6 +173,19 @@ export default function BookDetailClientActions({ workId, workSlug }: Props) {
           <span>DNF</span>
         </button>
       </div>
+
+      {/* Remove from Shelf option if book is currently on any shelf */}
+      {status && (
+        <button
+          type="button"
+          onClick={() => handleShelfChange("remove")}
+          disabled={loading}
+          className="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-medium text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/15 border border-red-500/20 transition-all cursor-pointer"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+          <span>Remove from My Shelf</span>
+        </button>
+      )}
 
       {/* Private Rating */}
       <div className="pt-3 border-t border-[var(--line)]">
