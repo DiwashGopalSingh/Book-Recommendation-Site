@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSimilarBooks, getPersonalizedRecommendations } from "@/lib/recommend/engine";
-import { db, userBooks, users, works } from "@/lib/db";
+import { db, client, userBooks, users, works } from "@/lib/db";
 import { eq } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
@@ -19,22 +19,26 @@ export async function GET(req: NextRequest) {
     }
 
     // Otherwise, fetch shelved books for the community member or guest
-    let guestUser = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.displayName, "Community Reader"))
-      .limit(1);
-
     let shelvedSlugs: string[] = [];
+    try {
+      await client.waitReady;
+      const guestUser = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.displayName, "Community Reader"))
+        .limit(1);
 
-    if (guestUser.length > 0) {
-      const rows = await db
-        .select({ slug: works.slug })
-        .from(userBooks)
-        .innerJoin(works, eq(userBooks.workId, works.id))
-        .where(eq(userBooks.userId, guestUser[0].id));
+      if (guestUser.length > 0) {
+        const rows = await db
+          .select({ slug: works.slug })
+          .from(userBooks)
+          .innerJoin(works, eq(userBooks.workId, works.id))
+          .where(eq(userBooks.userId, guestUser[0].id));
 
-      shelvedSlugs = rows.map((r) => r.slug);
+        shelvedSlugs = rows.map((r) => r.slug);
+      }
+    } catch (dbErr) {
+      console.warn("Recommendations DB query fallback:", dbErr);
     }
 
     const reco = getPersonalizedRecommendations(shelvedSlugs, limit);

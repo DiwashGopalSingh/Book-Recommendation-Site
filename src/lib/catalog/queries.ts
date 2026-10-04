@@ -119,7 +119,35 @@ export async function getBookBySlug(slug: string) {
       .where(eq(works.slug, slug))
       .limit(1);
 
-    if (workList.length === 0) return null;
+    if (workList.length === 0) {
+      const { ALL_500_BOOKS } = await import("./books-500");
+      const fallback = ALL_500_BOOKS.find((b) => b.slug === slug);
+      if (!fallback) return null;
+      return {
+        work: {
+          id: fallback.slug,
+          slug: fallback.slug,
+          title: fallback.title,
+          subtitle: fallback.subtitle || null,
+          firstPublishYear: fallback.year,
+          description: fallback.description,
+          audienceLevel: fallback.audienceLevel,
+        } as any,
+        author: {
+          name: fallback.authorName,
+          slug: fallback.authorSlug,
+          bio: fallback.authorBio,
+        },
+        editions: [
+          {
+            coverUrl: fallback.coverUrl,
+            pageCount: fallback.pages,
+            format: "Paperback",
+          },
+        ] as any,
+        subjects: fallback.subjects,
+      };
+    }
     const work = workList[0];
 
     const authorRes = await db
@@ -151,7 +179,39 @@ export async function getBookBySlug(slug: string) {
       subjects: subjectRes.map((s) => s.name),
     };
   } catch (error) {
-    console.error("Error getting book by slug:", error);
+    console.warn("DB query failed, falling back to static catalog for slug:", slug);
+    try {
+      const { ALL_500_BOOKS } = await import("./books-500");
+      const fallback = ALL_500_BOOKS.find((b) => b.slug === slug);
+      if (fallback) {
+        return {
+          work: {
+            id: fallback.slug,
+            slug: fallback.slug,
+            title: fallback.title,
+            subtitle: fallback.subtitle || null,
+            firstPublishYear: fallback.year,
+            description: fallback.description,
+            audienceLevel: fallback.audienceLevel,
+          } as any,
+          author: {
+            name: fallback.authorName,
+            slug: fallback.authorSlug,
+            bio: fallback.authorBio,
+          },
+          editions: [
+            {
+              coverUrl: fallback.coverUrl,
+              pageCount: fallback.pages,
+              format: "Paperback",
+            },
+          ] as any,
+          subjects: fallback.subjects,
+        };
+      }
+    } catch (fallbackErr) {
+      console.error("Static catalog fallback failed:", fallbackErr);
+    }
     return null;
   }
 }

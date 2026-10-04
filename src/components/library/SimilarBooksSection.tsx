@@ -1,3 +1,5 @@
+'use client';
+
 import Link from "next/link";
 import { Sparkles, ArrowRight, BookOpen, Layers } from "lucide-react";
 import { SimilarBookMatch } from "@/lib/recommend/engine";
