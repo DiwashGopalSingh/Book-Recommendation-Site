@@ -1,6 +1,6 @@
 import { db, client, works, editions, authors, workAuthors, subjects, workSubjects, externalIds } from "../db";
 import { runMigrations } from "../db/migrate";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 interface GutenbergAuthor {
   name: string;
@@ -65,26 +65,22 @@ function inferAudience(subjects: string[], bookshelves: string[]): "children" | 
 /**
  * Ingest open-source public-domain books from Project Gutenberg
  */
-export async function ingestOpenSourceBooks(targetTotalOrCount = 500) {
+export async function ingestOpenSourceBooks(maxBooks = 150) {
   await runMigrations();
   await client.waitReady;
-
-  const [currentWorkCountRes] = await db.select({ count: sql<number>`count(*)` }).from(works);
-  const currentTotal = Number(currentWorkCountRes?.count || 0);
-  const targetTotal = targetTotalOrCount > currentTotal ? targetTotalOrCount : currentTotal + targetTotalOrCount;
-
   console.log(`\n======================================================`);
   console.log(` Starting Catalog Ingestion of Open-Source Classics   `);
   console.log(` Source: Project Gutenberg Public Domain Catalog     `);
-  console.log(` Current Books: ${currentTotal} | Target Total: ${targetTotal} books `);
+  console.log(` Target count: ${maxBooks} books                    `);
   console.log(`======================================================\n`);
 
+  let fetched = 0;
   let page = 1;
   let totalInserted = 0;
 
-  while (currentTotal + totalInserted < targetTotal) {
+  while (fetched < maxBooks) {
     const url = `https://gutendex.com/books/?page=${page}`;
-    console.log(`\nFetching page ${page} from Gutendex...`);
+    console.log(`Fetching page ${page} from Gutendex...`);
 
     let data: { results: GutenbergBook[]; next: string | null };
     try {
@@ -110,7 +106,7 @@ export async function ingestOpenSourceBooks(targetTotalOrCount = 500) {
     }
 
     for (const book of data.results) {
-      if (currentTotal + totalInserted >= targetTotal) break;
+      if (fetched >= maxBooks) break;
 
       // Filter: Skip non-English or audiobooks
       if (!book.languages.includes("en") || !book.title) {
@@ -139,6 +135,7 @@ export async function ingestOpenSourceBooks(targetTotalOrCount = 500) {
 
       if (existingExt.length > 0) {
         // Already ingested
+        fetched++;
         continue;
       }
 
@@ -288,7 +285,8 @@ export async function ingestOpenSourceBooks(targetTotalOrCount = 500) {
       }
 
       totalInserted++;
-      process.stdout.write(`\r[${currentTotal + totalInserted}/${targetTotal}] Ingested: "${cleanTitle.slice(0, 30)}..." by ${authorName.slice(0, 18)}`);
+      fetched++;
+      process.stdout.write(`\r[${fetched}/${maxBooks}] Ingested: "${cleanTitle.slice(0, 32)}..." by ${authorName.slice(0, 20)}`);
     }
 
     if (!data.next) {

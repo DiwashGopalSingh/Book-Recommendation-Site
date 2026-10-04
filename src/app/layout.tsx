@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Open Library - Login & Book Showcase',
-  description: 'Interactive animated login with open access public domain books in orbit',
+  title: 'Open Classics Community Library & Reading Portal',
+  description: 'Free public-domain literature from Project Gutenberg & Open Library, curated reading shelves, and surveillance-free private reading tracker.',
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className="min-h-screen bg-neutral-950 font-sans text-neutral-100 antialiased selection:bg-teal-500 selection:text-white">
+      <body className="bg-neutral-950 text-neutral-100 antialiased selection:bg-indigo-500 selection:text-white">
         {children}
       </body>
     </html>

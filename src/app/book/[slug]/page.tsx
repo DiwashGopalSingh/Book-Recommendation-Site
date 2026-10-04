@@ -4,6 +4,8 @@ import { getBookBySlug } from "@/lib/catalog/queries";
 import { BookOpen, Star, ArrowLeft, Bookmark, Check, ShieldCheck, Heart, ExternalLink, Calendar, Layers, Globe } from "lucide-react";
 import BookDetailClientActions from "./BookDetailClientActions";
 
+export const dynamic = "force-dynamic";
+
 interface BookPageProps {
   params: Promise<{ slug: string }>;
 }

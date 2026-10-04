@@ -15,11 +15,16 @@ const AUDIENCE_FILTERS = [
 
 const SUBJECT_FILTERS = [
   "All Subjects",
-  "Classic Literature",
+  "Mystery & Crime",
+  "Science Fiction",
   "Philosophy & Ethics",
+  "Adventure",
   "Gothic & Horror",
-  "Satire & Adventure",
-  "Ancient Classics",
+  "Romance & Society",
+  "History & Life",
+  "Children's & YA",
+  "Poetry & Epics",
+  "Wit & Satire",
 ];
 
 function SearchPageContent() {

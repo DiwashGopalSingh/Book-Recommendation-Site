@@ -6,6 +6,21 @@ export async function runMigrations() {
   console.log("Applying database migrations...");
   await client.waitReady;
   try {
+    // Attempt to enable pg_trgm and vector extensions
+    try {
+      await client.exec("CREATE EXTENSION IF NOT EXISTS pg_trgm;");
+      console.log("✓ Extension pg_trgm checked/enabled");
+    } catch (e) {
+      console.log("- pg_trgm note:", (e as Error).message);
+    }
+
+    try {
+      await client.exec("CREATE EXTENSION IF NOT EXISTS vector;");
+      console.log("✓ Extension vector checked/enabled");
+    } catch (e) {
+      console.log("- vector note:", (e as Error).message);
+    }
+
     const migrationsFolder = path.join(process.cwd(), "drizzle");
     await migrate(db, { migrationsFolder });
     console.log("✓ All migrations successfully applied to PGLite database.");

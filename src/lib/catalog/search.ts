@@ -184,11 +184,12 @@ export async function searchCatalog(filters: SearchFilters): Promise<{
       const workSubjectNames = subjectRes.map((s) => s.name);
 
       // Filter by subject if specified
-      if (subject && subject !== "all") {
-        const targetSubj = subject.toLowerCase();
-        const matchesSubject = workSubjectNames.some((s) =>
-          s.toLowerCase().includes(targetSubj)
-        );
+      if (subject && subject !== "all" && subject !== "All Subjects") {
+        const target = subject.toLowerCase().trim();
+        const matchesSubject = workSubjectNames.some((s) => {
+          const lower = s.toLowerCase();
+          return lower.includes(target) || target.includes(lower);
+        });
         if (!matchesSubject) continue;
       }
 

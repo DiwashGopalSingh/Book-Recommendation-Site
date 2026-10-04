@@ -1,411 +1,159 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AuthTabs } from '@/components/LoginForm';
-import { Navbar } from '@/components/Navbar';
-import { CoverflowHero } from '@/components/CoverflowHero';
-import { ShelfSection, SAMPLE_SHELVES_DATA, BookItem } from '@/components/BookShelfCarousel';
+import { useRouter } from 'next/navigation';
+import { Navbar, CoverflowHero, ShelfSection, ALL_GENRE_SHELVES } from '@/components/library';
 import {
   checkIsAuthenticated,
+  clearStaleSession,
   getCurrentUser,
-  signInUser,
-  signUpUser,
-  logoutUser,
-  DUMMY_ACCOUNT,
   UserProfile,
 } from '@/lib/auth';
-import {
-  BookOpen,
-  ShieldCheck,
-  Sparkles,
-  KeyRound,
-  Lock,
-} from 'lucide-react';
-
-interface GenreShelf {
-  id: string;
-  title: string;
-  subtitle: string;
-  badge: string;
-  books: BookItem[];
-}
+import { BookOpen, ShieldCheck, Sparkles, Lock, Layers, Compass, CheckCircle2 } from 'lucide-react';
 
 export default function CommunityLibraryPage() {
-  const [isClient, setIsClient] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-
-  // Dynamic genre shelves housing all 500 books
-  const [genreShelves, setGenreShelves] = useState<GenreShelf[]>([]);
-  const [loadingShelves, setLoadingShelves] = useState(false);
-
-  // Login form state
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-  });
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  // Library shelves state
+  const [authChecked, setAuthChecked] = useState(false);
   const [savedBooks, setSavedBooks] = useState<string[]>([
-    'the_odyssey',
+    'the-hound-of-the-baskervilles',
+    'the-time-machine',
     'meditations',
-    'pride_and_prejudice',
+    'moby-dick',
+    'pride-and-prejudice',
   ]);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [activeGenreFilter, setActiveGenreFilter] = useState<string>('all');
 
   useEffect(() => {
-    setIsClient(true);
-    if (checkIsAuthenticated()) {
-      setIsAuthenticated(true);
-      setCurrentUser(getCurrentUser());
-    }
+    // Clear any stale/mismatched session data first
+    clearStaleSession();
 
-    // Load full collection organized into their respective genres
-    setLoadingShelves(true);
-    fetch('/api/genres')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.shelves && Array.isArray(data.shelves)) {
-          setGenreShelves(data.shelves);
-        }
-        setLoadingShelves(false);
-      })
-      .catch((err) => {
-        console.error('Failed to load genre shelves:', err);
-        setLoadingShelves(false);
-      });
-  }, []);
-
-  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
-    if (authError) setAuthError(null);
-  };
-
-  const handleToggleMode = () => {
-    setIsSignUp((prev) => !prev);
-    setAuthError(null);
-  };
-
-  const handleAutoFillDemo = () => {
-    setFormData({
-      name: DUMMY_ACCOUNT.name,
-      email: DUMMY_ACCOUNT.email,
-      password: DUMMY_ACCOUNT.password,
-    });
-    setAuthError(null);
-    setToastMessage('Demo credentials filled! Click "Sign In" to enter.');
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  const handleLoginSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setAuthError(null);
-
-    if (isSignUp) {
-      const result = signUpUser(formData.name, formData.email, formData.password);
-      if (result.success && result.user) {
-        setToastMessage(`Account created! Welcome, ${result.user.name}!`);
-        setCurrentUser(result.user);
-        setIsAuthenticated(true);
-      } else {
-        setAuthError(result.error || 'Failed to create account.');
-      }
-      setLoading(false);
+    if (!checkIsAuthenticated()) {
+      router.replace('/login');
     } else {
-      const result = signInUser(formData.email, formData.password);
-      if (result.success && result.user) {
-        setToastMessage(`Welcome back, ${result.user.name}!`);
-        setCurrentUser(result.user);
-        setIsAuthenticated(true);
-      } else {
-        setAuthError(result.error || 'Invalid credentials.');
-      }
-      setLoading(false);
+      setCurrentUser(getCurrentUser());
+      setAuthChecked(true);
     }
-  };
-
-  const handleLogout = () => {
-    logoutUser();
-    setIsAuthenticated(false);
-    setCurrentUser(null);
-    setFormData({ name: '', email: '', password: '' });
-    setToastMessage('Signed out successfully.');
-    setTimeout(() => setToastMessage(null), 2500);
-  };
+  }, [router]);
 
   const handleShelfToggle = (bookId: string) => {
     setSavedBooks((prev) => {
       const exists = prev.includes(bookId);
       const updated = exists ? prev.filter((id) => id !== bookId) : [...prev, bookId];
-      setToastMessage(
-        exists
-          ? 'Book removed from your private shelf'
-          : 'Book added to your "Want to Read" shelf'
+      setStatusMessage(
+        exists ? 'Book removed from your private shelf' : 'Book added to your "Want to Read" shelf'
       );
-      setTimeout(() => setToastMessage(null), 3000);
+      setTimeout(() => setStatusMessage(null), 3000);
       return updated;
     });
   };
 
-  const signInFields = {
-    header: 'Sign In to Library',
-    subHeader: 'Access your private reading shelves, bookmarks, and public-domain catalog.',
-    errorField: authError || undefined,
-    fields: [
-      {
-        id: 'email',
-        label: 'Email Address',
-        required: true,
-        placeholder: 'reader@library.community',
-        type: 'email' as const,
-        value: formData.email,
-        onChange: handleInputChange('email'),
-      },
-      {
-        id: 'password',
-        label: 'Password',
-        required: true,
-        placeholder: '••••••••',
-        type: 'password' as const,
-        value: formData.password,
-        onChange: handleInputChange('password'),
-      },
-    ],
-    submitButton: loading ? 'Signing In...' : 'Sign In to Account',
-    textVariantButton: "Don't have an account? Create Free Account",
-  };
-
-  const signUpFields = {
-    header: 'Create Free Account',
-    subHeader: 'Join the community library. 100% free, private shelves, zero tracking.',
-    errorField: authError || undefined,
-    fields: [
-      {
-        id: 'name',
-        label: 'Display Name / Nickname',
-        required: true,
-        placeholder: 'e.g. Elizabeth Bennet',
-        type: 'text' as const,
-        value: formData.name,
-        onChange: handleInputChange('name'),
-      },
-      {
-        id: 'email',
-        label: 'Email Address',
-        required: true,
-        placeholder: 'reader@library.community',
-        type: 'email' as const,
-        value: formData.email,
-        onChange: handleInputChange('email'),
-      },
-      {
-        id: 'password',
-        label: 'Password',
-        required: true,
-        placeholder: '•••••••• (min 6 characters)',
-        type: 'password' as const,
-        value: formData.password,
-        onChange: handleInputChange('password'),
-      },
-    ],
-    submitButton: loading ? 'Creating Account...' : 'Create Free Account',
-    textVariantButton: 'Already have an account? Sign In',
-  };
-
-  // Initial SSR state placeholder
-  if (!isClient) {
+  // Show loading/redirect screen while auth is being checked
+  if (!authChecked) {
     return (
-      <div className="min-h-screen bg-neutral-950 flex items-center justify-center text-neutral-400">
-        <Lock className="h-6 w-6 animate-pulse text-teal-400" />
+      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center text-white px-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-500/20 text-teal-400 border border-teal-500/30 mb-4 animate-pulse">
+          <Lock className="h-6 w-6" />
+        </div>
+        <p className="text-sm font-medium text-neutral-300">Checking membership authentication...</p>
+        <p className="text-xs text-neutral-500 mt-1">Redirecting to member sign in...</p>
       </div>
     );
   }
 
-  // =========================================================================
-  // 1. FIRST SCREEN: LOGIN PAGE (Shown when user is unauthenticated)
-  // =========================================================================
-  if (!isAuthenticated) {
-    return (
-      <main className="relative min-h-screen w-full bg-neutral-950 overflow-hidden">
-        {/* Floating Toast Notification */}
-        {toastMessage && (
-          <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-neutral-900/95 px-4 py-3 text-sm text-teal-300 shadow-2xl backdrop-blur-md border border-teal-500/30 animate-in fade-in slide-in-from-bottom-3 duration-300">
-            <Sparkles className="h-4 w-4 text-amber-400" />
-            <span>{toastMessage}</span>
-          </div>
-        )}
+  const displayedShelves =
+    activeGenreFilter === 'all'
+      ? ALL_GENRE_SHELVES
+      : ALL_GENRE_SHELVES.filter((shelf) => shelf.slug === activeGenreFilter);
 
-        {/* Top Header */}
-        <header className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30">
-              <BookOpen className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="font-serif text-base font-bold text-white tracking-wide">
-                Open Classics
-              </span>
-              <span className="hidden sm:inline-block ml-2 text-[10px] uppercase font-semibold text-teal-400 bg-teal-950/80 border border-teal-500/30 px-1.5 py-0.5 rounded">
-                Member Portal
-              </span>
-            </div>
-          </div>
+  const totalCatalogBooks = ALL_GENRE_SHELVES.reduce((acc, s) => acc + s.books.length, 0);
 
-          <div className="flex items-center gap-3 text-xs text-neutral-400">
-            <ShieldCheck className="h-4 w-4 text-emerald-400" />
-            <span className="hidden sm:inline">Tracker-Free · Private Reading Protection</span>
-          </div>
-        </header>
-
-        {/* Auth Box & Background */}
-        <AuthTabs
-          formFields={isSignUp ? signUpFields : signInFields}
-          handleSubmit={handleLoginSubmit}
-          goTo={handleToggleMode}
-        >
-          {/* Quick 1-Click Demo Fill Card */}
-          {!isSignUp && (
-            <div className="rounded-xl border border-teal-500/30 bg-teal-950/30 p-3.5 text-left backdrop-blur-sm shadow-inner transition-all hover:border-teal-500/50">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-teal-300">
-                  <KeyRound className="h-3.5 w-3.5 text-amber-400" />
-                  Dummy Test Account
-                </span>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-teal-400/80 bg-teal-900/50 px-1.5 py-0.5 rounded border border-teal-500/20">
-                  Instant Access
-                </span>
-              </div>
-              <div className="mt-2 text-xs text-neutral-300 space-y-0.5 font-mono">
-                <p>
-                  <span className="text-neutral-500">Email:</span>{' '}
-                  <span className="text-teal-200 select-all">{DUMMY_ACCOUNT.email}</span>
-                </p>
-                <p>
-                  <span className="text-neutral-500">Password:</span>{' '}
-                  <span className="text-teal-200 select-all">{DUMMY_ACCOUNT.password}</span>
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleAutoFillDemo}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 py-2 text-xs font-semibold text-teal-200 hover:text-white transition-all active:scale-98 cursor-pointer"
-              >
-                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                <span>Auto-Fill Demo Credentials</span>
-              </button>
-            </div>
-          )}
-        </AuthTabs>
-      </main>
-    );
-  }
-
-  // =========================================================================
-  // 2. MAIN CONTENT: COMMUNITY LIBRARY (Shown after user logs in)
-  // =========================================================================
   return (
     <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)] transition-colors">
-      {/* Global Navbar with user identity & sign out */}
-      <Navbar
-        user={currentUser}
-        onLogout={handleLogout}
-        savedCount={savedBooks.length}
-      />
+      {/* Global Navigation Bar */}
+      <Navbar savedCount={savedBooks.length} />
 
       {/* Floating Status Notification Toast */}
-      {toastMessage && (
+      {statusMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-neutral-900/95 px-4 py-3 text-sm text-teal-300 shadow-2xl backdrop-blur-md border border-teal-500/30 animate-in fade-in slide-in-from-bottom-3 duration-300">
           <Sparkles className="h-4 w-4 text-amber-400" />
-          <span>{toastMessage}</span>
+          <span>{statusMessage}</span>
         </div>
       )}
 
-      {/* Featured Books Coverflow Hero Section */}
+      {/* Hero Section: 3D Coverflow Rack Carousel */}
       <section id="featured-hero" className="w-full">
-        <CoverflowHero onBookShelfToggle={handleShelfToggle} savedBooks={savedBooks} />
+        <CoverflowHero
+          onBookShelfToggle={handleShelfToggle}
+          savedBooks={savedBooks}
+        />
       </section>
 
-      {/* Categorized Shelves Carousel Section */}
-      <main id="shelves" className="w-full bg-neutral-950 pb-16">
-        {/* Quick Genre Jump Bar */}
-        <div className="sticky top-16 z-30 bg-neutral-950/95 backdrop-blur-md border-b border-white/10 py-3 shadow-md">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <span className="text-xs font-semibold uppercase tracking-wider text-teal-400 mr-1 flex items-center gap-1.5 shrink-0">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              Genres:
-            </span>
-            <a
-              href="#shelf-staff"
-              className="text-xs px-3 py-1.5 rounded-full bg-neutral-900 border border-white/10 text-neutral-300 hover:text-white hover:border-teal-500/40 shrink-0 transition-all font-medium"
+      {/* Genre Exploration Banner & Pills Bar */}
+      <div className="sticky top-0 z-30 border-y border-white/10 bg-neutral-950/90 backdrop-blur-md px-4 py-3 shadow-lg">
+        <div className="mx-auto max-w-[1400px]">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 text-xs">
+                <Compass className="h-3.5 w-3.5" />
+              </span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-neutral-300">
+                Browse By Literary Genre
+              </span>
+              <span className="rounded-full bg-teal-500/10 px-2 py-0.5 text-[11px] font-medium text-teal-400 border border-teal-500/20">
+                {totalCatalogBooks} Curated Volumes
+              </span>
+            </div>
+
+            <div className="hidden md:flex items-center gap-2 text-xs text-neutral-400">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+              <span>50 Landmark Works per Genre · Arranged & Verified</span>
+            </div>
+          </div>
+
+          {/* Horizontally scrollable genre filter pills */}
+          <div className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+            <button
+              onClick={() => setActiveGenreFilter('all')}
+              className={`flex-none rounded-lg px-3 py-1.5 font-medium transition-all ${
+                activeGenreFilter === 'all'
+                  ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20'
+                  : 'bg-neutral-900/80 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-white/5'
+              }`}
             >
-              Curated Classics
-            </a>
-            {genreShelves.map((shelf) => (
-              <a
-                key={shelf.id}
-                href={`#shelf-${shelf.id}`}
-                className="text-xs px-3 py-1.5 rounded-full bg-neutral-900 border border-white/10 text-neutral-300 hover:text-white hover:border-teal-500/40 shrink-0 transition-all font-medium"
+              All Genres ({totalCatalogBooks})
+            </button>
+
+            {ALL_GENRE_SHELVES.map((shelf) => (
+              <button
+                key={shelf.slug}
+                onClick={() => setActiveGenreFilter(shelf.slug)}
+                className={`flex-none rounded-lg px-3 py-1.5 font-medium transition-all ${
+                  activeGenreFilter === shelf.slug
+                    ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20'
+                    : 'bg-neutral-900/80 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-white/5'
+                }`}
               >
                 {shelf.badge} ({shelf.books.length})
-              </a>
+              </button>
             ))}
           </div>
         </div>
+      </div>
 
-        {/* 1. Curated Staff Picks */}
-        <div id="shelf-staff">
+      {/* Community Content Shelves Arranged by Genre */}
+      <main id="shelves" className="w-full bg-neutral-950 pb-20">
+        {displayedShelves.map((shelf) => (
           <ShelfSection
-            title="Curated Staff Picks & Foundational Classics"
-            subtitle="Curated foundational works of enduring philosophical depth and narrative mastery"
-            books={SAMPLE_SHELVES_DATA.staffPicks}
+            key={shelf.slug}
+            title={shelf.title}
+            subtitle={`${shelf.subtitle} · ${shelf.books.length} curated volumes`}
+            books={shelf.books}
             onBookShelfToggle={handleShelfToggle}
             savedBooks={savedBooks}
           />
-        </div>
-
-        {/* 2. All Ingested Books Distributed In Respective Genre Shelves */}
-        {genreShelves.length > 0 ? (
-          genreShelves.map((shelf) => (
-            <div key={shelf.id} id={`shelf-${shelf.id}`}>
-              <ShelfSection
-                title={shelf.title}
-                subtitle={shelf.subtitle}
-                books={shelf.books}
-                onBookShelfToggle={handleShelfToggle}
-                savedBooks={savedBooks}
-              />
-            </div>
-          ))
-        ) : (
-          <>
-            <ShelfSection
-              title="Timeless Philosophy & Wisdom"
-              subtitle="Moral reflections, Stoic fortitude, and classical inquiry across the ages"
-              books={SAMPLE_SHELVES_DATA.philosophy}
-              onBookShelfToggle={handleShelfToggle}
-              savedBooks={savedBooks}
-            />
-            <ShelfSection
-              title="Wit, Satire & Epic Adventure"
-              subtitle="Sparkling dialogues, imaginative odysseys, and biting social commentary"
-              books={SAMPLE_SHELVES_DATA.comedyAndAdventure}
-              onBookShelfToggle={handleShelfToggle}
-              savedBooks={savedBooks}
-            />
-            <ShelfSection
-              title="World Classics & Monumental Sagas"
-              subtitle="Sweeping historical dramas, gothic mysteries, and beloved coming-of-age masterworks"
-              books={SAMPLE_SHELVES_DATA.worldClassics}
-              onBookShelfToggle={handleShelfToggle}
-              savedBooks={savedBooks}
-            />
-          </>
-        )}
+        ))}
       </main>
 
       {/* Footer */}
@@ -420,7 +168,7 @@ export default function CommunityLibraryPage() {
                 Open Classics Community Library
               </p>
               <p className="text-xs text-neutral-500">
-                A non-profit community reading initiative. 100% tracker-free.
+                500 public domain volumes curated and arranged across 10 literary genres. 100% tracker-free.
               </p>
             </div>
           </div>
@@ -432,8 +180,8 @@ export default function CommunityLibraryPage() {
             <span>·</span>
             <span>Project Gutenberg & Open Library Public Domain</span>
             <span>·</span>
-            <span className="text-teal-400 font-medium">
-              Signed in as {currentUser?.name || 'Member'}
+            <span className="text-neutral-400">
+              Signed in as <strong className="text-teal-300">{currentUser?.name}</strong>
             </span>
           </div>
         </div>

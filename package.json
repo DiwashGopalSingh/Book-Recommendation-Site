@@ -1,5 +1,5 @@
 {
-  "name": "community-library",
+  "name": "login-form",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,8 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "tsx src/lib/db/migrate.ts",
-    "db:seed": "tsx src/lib/db/seed.ts",
-    "db:ingest": "tsx src/lib/catalog/ingest.ts"
+    "db:seed": "tsx src/lib/db/seed.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { searchCatalog, SearchResultBook } from "@/lib/catalog/search";
+import { ALL_500_BOOKS, CATALOG_GENRES } from "@/lib/catalog/books-500";
+import { db, works } from "@/lib/db";
 
 export interface GenreShelf {
   id: string;
@@ -13,7 +14,7 @@ export interface GenreShelf {
     year: string;
     cover: string;
     badge?: string;
-    audience: 'children' | 'teen' | 'adult' | 'all';
+    audience: "children" | "teen" | "adult" | "all";
     rating: number;
     reviewCount: number;
     pages: number;
@@ -22,128 +23,44 @@ export interface GenreShelf {
   }[];
 }
 
-const GENRE_CONFIGS = [
-  {
-    id: "detective",
-    title: "Detective, Crime & Whodunit Mysteries",
-    subtitle: "Ingenious sleuths, master criminals, and puzzling enigmas by Agatha Christie, Conan Doyle, and more",
-    badge: "Mystery & Crime",
-    subjectFilter: "Detective",
-    limit: 50,
-  },
-  {
-    id: "scifi",
-    title: "Science Fiction & Speculative Worlds",
-    subtitle: "Futuristic visions, cosmic explorations, and visionary speculations across time and space",
-    badge: "Sci-Fi",
-    subjectFilter: "Science Fiction",
-    limit: 40,
-  },
-  {
-    id: "philosophy",
-    title: "Timeless Philosophy, Wisdom & Ethics",
-    subtitle: "Stoic meditations, existential treatises, and moral foundations from antiquity to modern thought",
-    badge: "Philosophy",
-    subjectFilter: "Philosophy",
-    limit: 40,
-  },
-  {
-    id: "adventure",
-    title: "Epic Adventure, Sea Voyages & Odysseys",
-    subtitle: "Perilous quests, high-seas daring, and uncharted expeditions into the unknown",
-    badge: "Adventure",
-    subjectFilter: "Adventure",
-    limit: 50,
-  },
-  {
-    id: "horror",
-    title: "Gothic Tales, Horror & Supernatural Chills",
-    subtitle: "Haunting manors, cosmic dread, and psychological terror from masters of the uncanny",
-    badge: "Gothic & Horror",
-    subjectFilter: "Horror",
-    limit: 30,
-  },
-  {
-    id: "romance",
-    title: "Romance, Society & Manners",
-    subtitle: "Social intrigues, witty courtships, and heartfelt domestic drama of the 19th and 20th centuries",
-    badge: "Romance",
-    subjectFilter: "Romance",
-    limit: 45,
-  },
-  {
-    id: "biography",
-    title: "Historical Chronicles, Memoirs & Biographies",
-    subtitle: "First-hand accounts, revolutionary lives, and historical chronicles shaping civilization",
-    badge: "History & Life",
-    subjectFilter: "Biographies",
-    limit: 40,
-  },
-  {
-    id: "classics",
-    title: "World Classics & Enduring Literary Masterpieces",
-    subtitle: "Universally celebrated monuments of world literature spanning centuries",
-    badge: "World Classic",
-    subjectFilter: "Classic",
-    limit: 50,
-  },
-];
-
-function transformBook(b: SearchResultBook, defaultBadge: string) {
-  const yearStr = b.firstPublishYear
-    ? b.firstPublishYear < 0
-      ? `${Math.abs(b.firstPublishYear)} BCE`
-      : b.firstPublishYear.toString()
-    : "Public Domain";
-
-  return {
-    id: b.slug,
-    title: b.title,
-    author: b.authorName,
-    year: yearStr,
-    cover: b.coverUrl || "/books/the_odyssey.jpg",
-    badge: defaultBadge,
-    audience: (b.audienceLevel as any) || "all",
-    rating: 4.8,
-    reviewCount: Math.min(999, Math.max(85, Math.floor(b.pageCount * 0.95))),
-    pages: b.pageCount || 240,
-    genre: b.subjects?.[0] || defaultBadge,
-    readUrl: `/book/${b.slug}`,
-  };
-}
-
 export async function GET() {
   try {
-    const shelves: GenreShelf[] = [];
+    const shelves: GenreShelf[] = CATALOG_GENRES.map((genre) => {
+      const genreBooks = ALL_500_BOOKS.filter((b) => b.genreSlug === genre.slug).map((b) => {
+        const yearStr = b.year < 0 ? `${Math.abs(b.year)} BCE` : b.year.toString();
+        const rating = Number((4.6 + ((b.title.length * 7) % 35) / 100).toFixed(2));
+        const reviewCount = 120 + ((b.pages * 3) % 450);
 
-    // Query each genre shelf in parallel
-    const promises = GENRE_CONFIGS.map(async (config) => {
-      const searchRes = await searchCatalog({
-        subject: config.subjectFilter,
-        limit: config.limit,
+        return {
+          id: b.slug,
+          title: b.title,
+          author: b.authorName,
+          year: yearStr,
+          cover: b.coverUrl || "/books/the_odyssey.jpg",
+          badge: genre.badge,
+          audience: b.audienceLevel,
+          rating,
+          reviewCount,
+          pages: b.pages,
+          genre: b.genre,
+          readUrl: `/book/${b.slug}`,
+        };
       });
 
-      const books = searchRes.books.map((b) => transformBook(b, config.badge));
-
       return {
-        id: config.id,
-        title: config.title,
-        subtitle: `${config.subtitle} (${searchRes.total} titles)`,
-        badge: config.badge,
-        books,
+        id: genre.slug,
+        title: genre.name,
+        subtitle: `${genre.subtitle} (${genreBooks.length} curated volumes)`,
+        badge: genre.badge,
+        books: genreBooks,
       };
     });
 
-    const results = await Promise.all(promises);
-
-    // Only include shelves that have books
-    for (const shelf of results) {
-      if (shelf.books.length > 0) {
-        shelves.push(shelf);
-      }
-    }
-
-    return NextResponse.json({ shelves });
+    return NextResponse.json({
+      totalBooks: ALL_500_BOOKS.length,
+      genresCount: shelves.length,
+      shelves,
+    });
   } catch (error) {
     console.error("GET /api/genres error:", error);
     return NextResponse.json({ error: "Failed to load genre shelves" }, { status: 500 });
