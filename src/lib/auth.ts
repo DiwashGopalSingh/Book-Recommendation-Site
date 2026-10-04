@@ -1,6 +1,6 @@
 /**
  * Community Library Authentication System
- * Includes dummy account credentials and session helpers.
+ * Includes session helpers and account management.
  */
 
 export interface UserPreferences {
@@ -16,18 +16,6 @@ export interface UserProfile {
   joinedDate?: string;
   preferences?: UserPreferences;
 }
-
-export const DUMMY_ACCOUNT = {
-  email: 'demo@library.community',
-  password: 'password123',
-  name: 'Demo Reader',
-  role: 'Community Member',
-  preferences: {
-    genres: ['sci-fi', 'philosophy', 'mystery-crime'],
-    interests: ['Space, Time & Future Visions', 'Stoicism & Ancient Wisdom', 'Victorian Whodunits & Sleuths'],
-    readingGoal: 'Consistent Reader (1-2 books/month)',
-  },
-};
 
 const AUTH_COOKIE_NAME = 'cl_session';
 const USER_STORAGE_KEY = 'library_user';
@@ -89,9 +77,9 @@ export function clearStaleSession(): void {
 /**
  * Retrieve current user profile
  */
-export function getCurrentUser(): UserProfile {
+export function getCurrentUser(): UserProfile | null {
   if (typeof window === 'undefined') {
-    return { email: DUMMY_ACCOUNT.email, name: DUMMY_ACCOUNT.name };
+    return null;
   }
 
   try {
@@ -101,7 +89,7 @@ export function getCurrentUser(): UserProfile {
     }
   } catch (_) {}
 
-  return { email: DUMMY_ACCOUNT.email, name: DUMMY_ACCOUNT.name };
+  return null;
 }
 
 /**
@@ -113,22 +101,7 @@ export function signInUser(
 ): { success: boolean; user?: UserProfile; error?: string } {
   const cleanEmail = email.trim().toLowerCase();
 
-  // 1. Verify against dummy account
-  if (
-    cleanEmail === DUMMY_ACCOUNT.email.toLowerCase() &&
-    pass === DUMMY_ACCOUNT.password
-  ) {
-    const user: UserProfile = {
-      email: DUMMY_ACCOUNT.email,
-      name: DUMMY_ACCOUNT.name,
-      joinedDate: 'October 2026',
-      preferences: DUMMY_ACCOUNT.preferences,
-    };
-    saveUserSession(user);
-    return { success: true, user };
-  }
-
-  // 2. Check for locally registered accounts in localStorage
+  // Check for locally registered accounts in localStorage
   if (typeof window !== 'undefined') {
     try {
       const storedAccounts = JSON.parse(
@@ -153,7 +126,7 @@ export function signInUser(
 
   return {
     success: false,
-    error: `Invalid credentials. Please use the dummy account (${DUMMY_ACCOUNT.email} / ${DUMMY_ACCOUNT.password}) or create an account.`,
+    error: 'Invalid email or password. Please verify your credentials or create an account.',
   };
 }
 
