@@ -308,6 +308,22 @@ function SearchPageContent() {
         ) : (
           /* Active Results State */
           <div>
+            {/* Search Results Header */}
+            <div className="flex items-center justify-between mb-6 pb-3 border-b border-[var(--line)]">
+              <div>
+                <h2 className="text-xl md:text-2xl font-serif font-bold text-[var(--ink)]">
+                  {debouncedQuery.trim().length === 1
+                    ? `Books Starting With "${debouncedQuery.trim().toUpperCase()}"`
+                    : debouncedQuery.trim()
+                    ? `Books Matching "${debouncedQuery.trim()}"`
+                    : "Complete Library Catalog"}
+                </h2>
+                <p className="text-xs text-[var(--muted)] mt-1">
+                  Showing {books.length} of {total} title{total === 1 ? "" : "s"}
+                </p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
               {books.map((book) => {
                 const isSaved = savedBooks.includes(book.slug);

@@ -180,7 +180,11 @@ export function Navbar({ onOpenAuth, savedCount }: NavbarProps) {
                   {/* Results Section */}
                   <div className="p-3">
                     <div className="flex items-center justify-between px-2 pb-2 text-[11px] font-bold uppercase tracking-wider text-neutral-400">
-                      <span>Matching Titles ({totalResults})</span>
+                      <span>
+                        {navQuery.trim().length === 1
+                          ? `Books Starting With "${navQuery.trim().toUpperCase()}" (${totalResults})`
+                          : `Books Matching "${navQuery.trim()}" (${totalResults})`}
+                      </span>
                       {loading && <span className="text-teal-400 lowercase font-normal">searching...</span>}
                     </div>
 
