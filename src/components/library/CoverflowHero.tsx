@@ -4,7 +4,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, Bookmark, BookOpen, Star, Sparkles } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Bookmark,
+  BookOpen,
+  Star,
+  Sparkles,
+  MoveHorizontal,
+  Flame,
+} from 'lucide-react';
 
 export interface FeaturedBook {
   id: string;
@@ -24,94 +33,34 @@ export interface FeaturedBook {
 
 export const FEATURED_HERO_BOOKS: FeaturedBook[] = [
   {
-    id: 'pride_and_prejudice',
+    id: 'pride-and-prejudice',
     title: 'Pride and Prejudice',
     author: 'Jane Austen',
     year: '1813',
     genre: 'Classic Romance',
     audience: 'all',
-    cover: '/books/pride_and_prejudice.jpg',
-    description: 'A witty and romantic comedy of manners depicting the turbulent relationship between Elizabeth Bennet and the enigmatic Mr. Darcy.',
+    cover: 'https://covers.openlibrary.org/b/id/12645114-M.jpg',
+    description: 'A witty comedy of manners depicting the turbulent relationship between Elizabeth Bennet and the enigmatic Mr. Darcy.',
     pages: 432,
     readUrl: 'https://www.gutenberg.org/ebooks/1342',
-    rating: 4.8,
-    ratingCount: 342,
-    featuredReason: 'Curator Pick · Timeless Literary Wit',
+    rating: 4.9,
+    ratingCount: 520,
+    featuredReason: '#1 Most Popular Classic · Timeless Literary Wit',
   },
   {
     id: 'frankenstein',
     title: 'Frankenstein',
     author: 'Mary Shelley',
     year: '1818',
-    genre: 'Gothic Science Fiction',
+    genre: 'Gothic Sci-Fi',
     audience: 'teen',
-    cover: '/books/frankenstein.jpg',
+    cover: 'https://covers.openlibrary.org/b/id/8232063-M.jpg',
     description: 'The chilling tale of Victor Frankenstein and the sentient creature he creates in an unorthodox scientific experiment.',
     pages: 280,
     readUrl: 'https://www.gutenberg.org/ebooks/84',
-    rating: 4.7,
-    ratingCount: 290,
-    featuredReason: 'Foundational Sci-Fi Classic',
-  },
-  {
-    id: 'the_odyssey',
-    title: 'The Odyssey',
-    author: 'Homer',
-    year: '800 BC',
-    genre: 'Epic Poetry & Myth',
-    audience: 'all',
-    cover: '/books/the_odyssey.jpg',
-    description: 'The monumental journey of Odysseus navigating mythical perils, sorceresses, and sea monsters on his ten-year voyage back to Ithaca.',
-    pages: 540,
-    readUrl: 'https://www.gutenberg.org/ebooks/1727',
-    rating: 4.9,
-    ratingCount: 418,
-    featuredReason: 'Community Favorite · Epic Adventure',
-  },
-  {
-    id: 'meditations',
-    title: 'Meditations',
-    author: 'Marcus Aurelius',
-    year: '180 AD',
-    genre: 'Stoic Philosophy',
-    audience: 'adult',
-    cover: '/books/meditations.jpg',
-    description: 'Personal reflections and private moral exercises on resilience, duty, and tranquility by the Roman Emperor.',
-    pages: 256,
-    readUrl: 'https://www.gutenberg.org/ebooks/2680',
-    rating: 4.95,
-    ratingCount: 520,
-    featuredReason: 'Most Read in Philosophy',
-  },
-  {
-    id: 'great_gatsby',
-    title: 'The Great Gatsby',
-    author: 'F. Scott Fitzgerald',
-    year: '1925',
-    genre: '20th Century Fiction',
-    audience: 'teen',
-    cover: '/books/great_gatsby.jpg',
-    description: 'A dazzling yet haunting portrait of the Jazz Age, obsessed love, and the elusive nature of the American Dream on Long Island.',
-    pages: 180,
-    readUrl: 'https://www.gutenberg.org/ebooks/64317',
-    rating: 4.6,
-    ratingCount: 388,
-    featuredReason: 'Staff Highlight · Jazz Age Masterpiece',
-  },
-  {
-    id: 'walden',
-    title: 'Walden',
-    author: 'Henry David Thoreau',
-    year: '1854',
-    genre: 'Nature & Solitude',
-    audience: 'all',
-    cover: '/books/walden.jpg',
-    description: 'A reflective account of living simply in natural surroundings on the shores of Walden Pond, discovering life essential truths.',
-    pages: 320,
-    readUrl: 'https://www.gutenberg.org/ebooks/205',
-    rating: 4.75,
-    ratingCount: 215,
-    featuredReason: 'Community Recommendation · Quiet Living',
+    rating: 4.8,
+    ratingCount: 465,
+    featuredReason: 'Foundational Sci-Fi & Gothic Horror Masterwork',
   },
   {
     id: 'dracula',
@@ -120,13 +69,178 @@ export const FEATURED_HERO_BOOKS: FeaturedBook[] = [
     year: '1897',
     genre: 'Gothic Horror',
     audience: 'teen',
-    cover: '/books/dracula.jpg',
-    description: 'The quintessential epistolary vampire novel chronicling Count Dracula attempt to relocate from Transylvania to Victorian England.',
+    cover: 'https://covers.openlibrary.org/b/id/12216503-M.jpg',
+    description: 'Young solicitor Jonathan Harker journeys to Transylvania to conclude a property deal with Count Dracula, uncovering an ancient bloodthirsty predator.',
     pages: 418,
     readUrl: 'https://www.gutenberg.org/ebooks/345',
+    rating: 4.8,
+    ratingCount: 490,
+    featuredReason: 'Global Horror Phenomenon · The Ultimate Vampire Classic',
+  },
+  {
+    id: 'the-picture-of-dorian-gray',
+    title: 'The Picture of Dorian Gray',
+    author: 'Oscar Wilde',
+    year: '1890',
+    genre: 'Gothic & Decadence',
+    audience: 'teen',
+    cover: 'https://covers.openlibrary.org/b/id/8232216-M.jpg',
+    description: 'Dorian Gray trades his soul so that his portrait ages while he maintains unblemished youth, descending into ruthless aesthetic hedonism.',
+    pages: 260,
+    readUrl: 'https://www.gutenberg.org/ebooks/174',
+    rating: 4.85,
+    ratingCount: 512,
+    featuredReason: 'Wilde\'s Crowning Masterpiece of Vanity and Sin',
+  },
+  {
+    id: 'the-hound-of-the-baskervilles',
+    title: 'The Hound of the Baskervilles',
+    author: 'Arthur Conan Doyle',
+    year: '1902',
+    genre: 'Mystery & Crime',
+    audience: 'teen',
+    cover: 'https://covers.openlibrary.org/b/id/9411873-M.jpg',
+    description: 'Sherlock Holmes and Dr. Watson investigate the curse of an otherworldly spectral hound haunting Dartmoor manor.',
+    pages: 256,
+    readUrl: 'https://www.gutenberg.org/ebooks/2852',
+    rating: 4.9,
+    ratingCount: 580,
+    featuredReason: 'The Pinnacle of Sherlockian Deduction & Suspense',
+  },
+  {
+    id: 'alices-adventures-in-wonderland',
+    title: "Alice's Adventures in Wonderland",
+    author: 'Lewis Carroll',
+    year: '1865',
+    genre: "Children's & YA",
+    audience: 'children',
+    cover: 'https://covers.openlibrary.org/b/id/8232335-M.jpg',
+    description: 'Young Alice tumbles down a rabbit hole into a nonsensical wonderland populated by the White Rabbit, Mad Hatter, and Queen of Hearts.',
+    pages: 160,
+    readUrl: 'https://www.gutenberg.org/ebooks/11',
+    rating: 4.8,
+    ratingCount: 440,
+    featuredReason: 'Beloved Worldwide · Masterpiece of Wonder & Imagination',
+  },
+  {
+    id: 'the-time-machine',
+    title: 'The Time Machine',
+    author: 'H.G. Wells',
+    year: '1895',
+    genre: 'Sci-Fi Classic',
+    audience: 'teen',
+    cover: 'https://covers.openlibrary.org/b/id/8232043-M.jpg',
+    description: 'An inventive Victorian scientist travels into the year 802,701 AD, discovering humanity fractured into the Eloi and subterranean Morlocks.',
+    pages: 118,
+    readUrl: 'https://www.gutenberg.org/ebooks/35',
+    rating: 4.75,
+    ratingCount: 395,
+    featuredReason: 'The Original Time Travel Odyssey that Defined Sci-Fi',
+  },
+  {
+    id: 'the-count-of-monte-cristo',
+    title: 'The Count of Monte Cristo',
+    author: 'Alexandre Dumas',
+    year: '1844',
+    genre: 'Epic Adventure',
+    audience: 'teen',
+    cover: 'https://covers.openlibrary.org/b/id/8232156-M.jpg',
+    description: 'Wrongfully imprisoned in the Chateau d\'If, Edmond Dantès escapes, claims a fabulous treasure, and meticulously avenges his betrayers.',
+    pages: 1276,
+    readUrl: 'https://www.gutenberg.org/ebooks/1184',
+    rating: 4.95,
+    ratingCount: 610,
+    featuredReason: 'The Ultimate Epic of Justice, Vengeance, and Triumph',
+  },
+  {
+    id: 'moby-dick',
+    title: 'Moby-Dick',
+    author: 'Herman Melville',
+    year: '1851',
+    genre: 'Maritime Adventure',
+    audience: 'teen',
+    cover: 'https://covers.openlibrary.org/b/id/8232141-M.jpg',
+    description: 'Ishmael sails aboard the Pequod under Captain Ahab, whose monomaniacal quest against the white sperm whale leads into cosmic fate.',
+    pages: 635,
+    readUrl: 'https://www.gutenberg.org/ebooks/2701',
     rating: 4.7,
-    ratingCount: 310,
-    featuredReason: 'Essential Horror Heritage',
+    ratingCount: 420,
+    featuredReason: 'Monumental Saga of Obsession and the Open Sea',
+  },
+  {
+    id: 'jane-eyre',
+    title: 'Jane Eyre',
+    author: 'Charlotte Brontë',
+    year: '1847',
+    genre: 'Gothic Romance',
+    audience: 'teen',
+    cover: 'https://covers.openlibrary.org/b/id/8232244-M.jpg',
+    description: 'Orphaned governess Jane Eyre falls in love with the brooding Edward Rochester at Thornfield Hall, uncovering a dark secret concealed in the attic.',
+    pages: 507,
+    readUrl: 'https://www.gutenberg.org/ebooks/1260',
+    rating: 4.85,
+    ratingCount: 475,
+    featuredReason: 'Fierce Moral Independence and Unforgettable Romance',
+  },
+  {
+    id: 'wuthering-heights',
+    title: 'Wuthering Heights',
+    author: 'Emily Brontë',
+    year: '1847',
+    genre: 'Passionate Drama',
+    audience: 'teen',
+    cover: 'https://covers.openlibrary.org/b/id/8232248-M.jpg',
+    description: 'The destructive, supernatural passion between Heathcliff and Catherine Earnshaw on the windswept Yorkshire moors wrecks vengeance across two generations.',
+    pages: 416,
+    readUrl: 'https://www.gutenberg.org/ebooks/768',
+    rating: 4.8,
+    ratingCount: 430,
+    featuredReason: 'A Raw, Untamable Force of Passionate Drama',
+  },
+  {
+    id: 'the-odyssey',
+    title: 'The Odyssey',
+    author: 'Homer',
+    year: '800 BC',
+    genre: 'Myth & Epic Poetry',
+    audience: 'all',
+    cover: 'https://covers.openlibrary.org/b/id/9045853-M.jpg',
+    description: 'The ten-year voyage of Odysseus navigating mythical perils, sirens, and monsters on his heroic journey back to Ithaca.',
+    pages: 540,
+    readUrl: 'https://www.gutenberg.org/ebooks/1727',
+    rating: 4.9,
+    ratingCount: 510,
+    featuredReason: 'The Supreme Maritime Journey in Human Storytelling',
+  },
+  {
+    id: 'meditations',
+    title: 'Meditations',
+    author: 'Marcus Aurelius',
+    year: '180 AD',
+    genre: 'Stoic Philosophy',
+    audience: 'adult',
+    cover: 'https://covers.openlibrary.org/b/id/12836246-M.jpg',
+    description: 'Private spiritual reflections and moral exercises on resilience, duty, and tranquility by the Roman Emperor.',
+    pages: 256,
+    readUrl: 'https://www.gutenberg.org/ebooks/2680',
+    rating: 4.95,
+    ratingCount: 650,
+    featuredReason: 'Top Read in World Philosophy · Stoic Fortress',
+  },
+  {
+    id: 'the-adventures-of-sherlock-holmes',
+    title: 'The Adventures of Sherlock Holmes',
+    author: 'Arthur Conan Doyle',
+    year: '1892',
+    genre: 'Detective Fiction',
+    audience: 'teen',
+    cover: 'https://covers.openlibrary.org/b/id/12836246-M.jpg',
+    description: 'Twelve quintessential Baker Street cases including "A Scandal in Bohemia", "The Red-Headed League", and "The Speckled Band".',
+    pages: 307,
+    readUrl: 'https://www.gutenberg.org/ebooks/1661',
+    rating: 4.85,
+    ratingCount: 480,
+    featuredReason: 'The World’s Most Renowned Consulting Detective',
   },
 ];
 
@@ -143,8 +257,15 @@ export function CoverflowHero({
   onBookShelfToggle,
   savedBooks = [],
 }: CoverflowHeroProps) {
-  const [activeIndex, setActiveIndex] = useState(2); // Start on The Odyssey
+  const [activeIndex, setActiveIndex] = useState(2); // Start on Dracula / Hound
   const [activeShelf, setActiveShelf] = useState<{ [bookId: string]: string }>({});
+
+  // Real-time drag-clicking states
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartX, setDragStartX] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const hasDragged = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const nextSlide = () => {
     setActiveIndex((prev) => (prev + 1) % books.length);
@@ -155,6 +276,46 @@ export function CoverflowHero({
   };
 
   const currentBook = books[activeIndex];
+
+  // Drag interaction handlers
+  const handlePointerDown = (clientX: number) => {
+    setIsDragging(true);
+    setDragStartX(clientX);
+    setDragOffset(0);
+    hasDragged.current = false;
+  };
+
+  const handlePointerMove = (clientX: number) => {
+    if (!isDragging) return;
+    const diff = clientX - dragStartX;
+    setDragOffset(diff);
+    if (Math.abs(diff) > 8) {
+      hasDragged.current = true;
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+
+    const threshold = 40; // minimum drag distance in pixels to trigger slide
+    if (dragOffset < -threshold) {
+      nextSlide();
+    } else if (dragOffset > threshold) {
+      prevSlide();
+    }
+    setDragOffset(0);
+  };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') prevSlide();
+      if (e.key === 'ArrowRight') nextSlide();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [books.length]);
 
   const handleShelfChange = (bookId: string, shelf: string) => {
     setActiveShelf((prev) => ({
@@ -170,76 +331,101 @@ export function CoverflowHero({
   };
 
   return (
-    <section className="relative w-full overflow-hidden bg-neutral-950 py-12 md:py-16 text-white select-none">
+    <section className="relative w-full overflow-hidden bg-neutral-950 py-10 md:py-16 text-white select-none">
       {/* Subtle Atmospheric Background Glow */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-emerald-950/20 blur-[120px] rounded-full" />
-        <div className="absolute top-1/3 left-1/3 w-[400px] h-[250px] bg-indigo-950/20 blur-[100px] rounded-full" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[360px] bg-teal-950/25 blur-[130px] rounded-full" />
+        <div className="absolute top-1/3 left-1/3 w-[450px] h-[260px] bg-indigo-950/25 blur-[110px] rounded-full" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
         {/* Header Title with Design System Typography */}
-        <div className="text-center mb-8 md:mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-teal-500/30 bg-teal-950/40 text-xs font-medium text-teal-300 mb-3 backdrop-blur-md">
-            <Sparkles className="w-3.5 h-3.5 text-teal-400" />
-            Curated Community Showcase
+        <div className="text-center mb-6 md:mb-8">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-teal-500/30 bg-teal-950/50 text-xs font-semibold text-teal-300 mb-2.5 backdrop-blur-md shadow-sm">
+            <Flame className="w-3.5 h-3.5 text-amber-400" />
+            Most Popular Landmark Books
           </div>
-          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white">
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
             Discover Your Next Chapter
           </h1>
-          <p className="mt-2 text-sm sm:text-base text-neutral-400 max-w-xl mx-auto">
-            Timeless public-domain books and community-curated classics with private reading tracking.
+          <p className="mt-2 text-xs sm:text-sm text-neutral-400 max-w-xl mx-auto">
+            14 of the world’s most celebrated literary classics. Drag or swipe across the rack to explore.
           </p>
+
+          {/* Interactive Drag Hint */}
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-neutral-900/60 px-3 py-1 text-[11px] text-neutral-300 backdrop-blur-sm">
+            <MoveHorizontal className="w-3 h-3 text-teal-400 animate-pulse" />
+            <span>Click &amp; Drag horizontally to slide books</span>
+          </div>
         </div>
 
         {/* 3D Coverflow Container */}
         <div className="relative flex flex-col items-center">
           {/* Navigation Arrows */}
-          <div className="absolute inset-y-0 left-2 sm:left-6 z-40 flex items-center">
+          <div className="absolute inset-y-0 left-1 sm:left-4 z-40 flex items-center pointer-events-auto">
             <button
               onClick={prevSlide}
               aria-label="Previous Book"
-              className="p-2 sm:p-2.5 rounded-full border border-white/10 bg-neutral-900/80 text-neutral-200 hover:text-white hover:bg-neutral-800/90 transition-all hover:scale-105 active:scale-95 backdrop-blur-md shadow-lg"
+              className="p-2 sm:p-2.5 rounded-full border border-white/15 bg-neutral-900/85 text-neutral-200 hover:text-white hover:bg-neutral-800 transition-all hover:scale-105 active:scale-95 backdrop-blur-md shadow-xl"
             >
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
 
-          <div className="absolute inset-y-0 right-2 sm:right-6 z-40 flex items-center">
+          <div className="absolute inset-y-0 right-1 sm:right-4 z-40 flex items-center pointer-events-auto">
             <button
               onClick={nextSlide}
               aria-label="Next Book"
-              className="p-2 sm:p-2.5 rounded-full border border-white/10 bg-neutral-900/80 text-neutral-200 hover:text-white hover:bg-neutral-800/90 transition-all hover:scale-105 active:scale-95 backdrop-blur-md shadow-lg"
+              className="p-2 sm:p-2.5 rounded-full border border-white/15 bg-neutral-900/85 text-neutral-200 hover:text-white hover:bg-neutral-800 transition-all hover:scale-105 active:scale-95 backdrop-blur-md shadow-xl"
             >
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
 
-          {/* 3D Cards Stage */}
+          {/* 3D Cards Stage with Drag-Click Support */}
           <div
-            className="relative w-full h-[320px] sm:h-[380px] flex items-center justify-center"
-            style={{ perspective: '1100px' }}
+            ref={containerRef}
+            onMouseDown={(e) => handlePointerDown(e.clientX)}
+            onMouseMove={(e) => handlePointerMove(e.clientX)}
+            onMouseUp={handlePointerUp}
+            onMouseLeave={handlePointerUp}
+            onTouchStart={(e) => handlePointerDown(e.touches[0].clientX)}
+            onTouchMove={(e) => handlePointerMove(e.touches[0].clientX)}
+            onTouchEnd={handlePointerUp}
+            className={`relative w-full h-[330px] sm:h-[400px] flex items-center justify-center select-none touch-pan-y ${
+              isDragging ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+            style={{ perspective: '1150px' }}
           >
             {books.map((book, index) => {
-              const offset = index - activeIndex;
-              const absOffset = Math.abs(offset);
+              const step = typeof window !== 'undefined' && window.innerWidth < 640 ? 115 : 165;
+              const dragFraction = isDragging ? dragOffset / step : 0;
+              const effectiveOffset = (index - activeIndex) + dragFraction;
+              const absOffset = Math.abs(effectiveOffset);
 
-              // Only render slides within visible reach
-              if (absOffset > 3) return null;
+              // Render visible slides in range
+              if (absOffset > 3.8) return null;
 
-              // Calculate 3D transforms for Coverflow effect
-              const translateX = offset * (typeof window !== 'undefined' && window.innerWidth < 640 ? 110 : 160);
-              const rotateY = offset === 0 ? 0 : offset > 0 ? -32 : 32;
-              const translateZ = offset === 0 ? 60 : -45 * absOffset;
-              const scale = offset === 0 ? 1.05 : 0.82;
-              const zIndex = 30 - absOffset;
-              const opacity = absOffset === 0 ? 1 : absOffset === 1 ? 0.78 : absOffset === 2 ? 0.45 : 0.2;
+              // Calculate 3D transforms for Coverflow effect with dynamic drag displacement
+              const translateX = effectiveOffset * step;
+              const rotateY = Math.max(-40, Math.min(40, -effectiveOffset * 28));
+              const translateZ = -38 * absOffset + (absOffset < 0.6 ? 50 * (1 - absOffset * 1.66) : 0);
+              const scale = Math.max(0.74, 1.05 - absOffset * 0.12);
+              const zIndex = Math.round(50 - absOffset * 10);
+              const opacity = Math.max(0.12, 1 - absOffset * 0.28);
 
               return (
                 <motion.div
                   key={book.id}
-                  onClick={() => setActiveIndex(index)}
-                  className="absolute cursor-pointer will-change-transform"
+                  onClick={(e) => {
+                    if (hasDragged.current) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return;
+                    }
+                    setActiveIndex(index);
+                  }}
+                  className="absolute will-change-transform"
                   style={{
                     zIndex,
                   }}
@@ -251,16 +437,17 @@ export function CoverflowHero({
                     opacity,
                   }}
                   transition={{
-                    type: 'spring',
-                    stiffness: 260,
-                    damping: 24,
+                    type: isDragging ? 'tween' : 'spring',
+                    stiffness: 280,
+                    damping: 26,
+                    duration: isDragging ? 0.05 : undefined,
                   }}
                 >
                   <div
-                    className={`relative w-44 h-64 sm:w-56 sm:h-80 rounded-md overflow-hidden transition-all duration-300 ${
-                      offset === 0
-                        ? 'ring-2 ring-teal-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(20,184,166,0.25)]'
-                        : 'shadow-[0_12px_30px_rgba(0,0,0,0.85)] filter brightness-90 hover:brightness-105'
+                    className={`relative w-44 h-64 sm:w-56 sm:h-80 rounded-lg overflow-hidden transition-all duration-300 ${
+                      Math.abs(effectiveOffset) < 0.5
+                        ? 'ring-2 ring-teal-400/60 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_35px_rgba(20,184,166,0.3)]'
+                        : 'shadow-[0_12px_30px_rgba(0,0,0,0.85)] filter brightness-85 hover:brightness-105'
                     }`}
                   >
                     {/* Spine Realistic Depth Gradient */}
@@ -271,21 +458,21 @@ export function CoverflowHero({
                       alt={book.title}
                       fill
                       sizes="(max-width: 640px) 180px, 240px"
-                      className="object-cover"
+                      className="object-cover pointer-events-none"
                       priority={absOffset <= 1}
                     />
 
                     {/* Badge Top Left */}
                     <div className="absolute top-2 left-2 z-20">
-                      <span className="px-2 py-0.5 rounded-sm bg-black/85 backdrop-blur-md text-[10px] font-semibold tracking-wider uppercase text-neutral-300 border border-white/10">
+                      <span className="px-2 py-0.5 rounded bg-black/85 backdrop-blur-md text-[10px] font-semibold tracking-wider uppercase text-teal-300 border border-teal-500/30">
                         {book.audience}
                       </span>
                     </div>
 
-                    {/* Penguin Classics Banner Header */}
-                    <div className="absolute top-0 inset-x-0 bg-black/85 py-1 px-2 flex items-center justify-between z-10 border-b border-black/80">
-                      <span className="text-[9px] font-bold tracking-widest uppercase text-neutral-200">
-                        PENGUIN
+                    {/* Book Spine / Genre Top Banner */}
+                    <div className="absolute top-0 inset-x-0 bg-neutral-950/85 py-1 px-2 flex items-center justify-between z-10 border-b border-white/10">
+                      <span className="text-[9px] font-bold tracking-widest uppercase text-white">
+                        CLASSIC
                       </span>
                       <span className="text-[9px] font-semibold text-neutral-400">
                         {book.genre}
@@ -297,23 +484,23 @@ export function CoverflowHero({
             })}
           </div>
 
-          {/* Under-Rack Caption / Metadata Panel (Inspired by 21st Coverflow) */}
+          {/* Under-Rack Caption / Metadata Panel */}
           <AnimatePresence mode="wait">
             <motion.div
               key={currentBook.id}
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.28 }}
-              className="mt-6 w-full max-w-2xl rounded-xl border border-white/10 bg-neutral-900/80 p-5 sm:p-6 backdrop-blur-xl shadow-2xl text-center"
+              transition={{ duration: 0.25 }}
+              className="mt-6 w-full max-w-2xl rounded-xl border border-white/10 bg-neutral-900/85 p-5 sm:p-6 backdrop-blur-xl shadow-2xl text-center"
             >
               {/* Reason Tag */}
-              <div className="inline-block text-xs font-medium text-amber-400 bg-amber-950/40 border border-amber-500/30 px-2.5 py-0.5 rounded-full mb-2">
+              <div className="inline-block text-xs font-semibold text-amber-400 bg-amber-950/40 border border-amber-500/30 px-3 py-1 rounded-full mb-2.5">
                 ★ {currentBook.featuredReason}
               </div>
 
               {/* Title & Author */}
-              <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white tracking-tight">
                 {currentBook.title}
               </h2>
               <p className="text-sm font-medium text-teal-400 mt-1">
@@ -329,7 +516,7 @@ export function CoverflowHero({
                 <div className="flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                   <span className="font-semibold text-white">{currentBook.rating}</span>
-                  <span>({currentBook.ratingCount} ratings)</span>
+                  <span>({currentBook.ratingCount} reviews)</span>
                 </div>
                 <div>·</div>
                 <div>{currentBook.pages} pages</div>
@@ -343,13 +530,13 @@ export function CoverflowHero({
                   type="button"
                   onClick={() => handleShelfChange(currentBook.id, 'want_to_read')}
                   className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    activeShelf[currentBook.id] === 'want_to_read'
+                    activeShelf[currentBook.id] === 'want_to_read' || savedBooks.includes(currentBook.id)
                       ? 'bg-teal-500 text-white shadow-md'
                       : 'border border-white/15 bg-neutral-800 text-neutral-200 hover:bg-neutral-700'
                   }`}
                 >
                   <Bookmark className="w-3.5 h-3.5" />
-                  {activeShelf[currentBook.id] === 'want_to_read' ? 'On Want to Read' : 'Want to Read'}
+                  {savedBooks.includes(currentBook.id) ? 'On My Shelf' : 'Want to Read'}
                 </button>
 
                 <button
@@ -366,7 +553,7 @@ export function CoverflowHero({
                 </button>
 
                 <Link
-                  href={`/book/${currentBook.id.replace(/_/g, '-')}`}
+                  href={`/book/${currentBook.id}`}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium text-neutral-200 bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
                 >
                   Book Details
@@ -385,7 +572,7 @@ export function CoverflowHero({
           </AnimatePresence>
 
           {/* Dots Indicator */}
-          <div className="mt-6 flex items-center gap-1.5">
+          <div className="mt-6 flex items-center gap-1.5 max-w-full overflow-x-auto py-1">
             {books.map((_, index) => (
               <button
                 key={index}
