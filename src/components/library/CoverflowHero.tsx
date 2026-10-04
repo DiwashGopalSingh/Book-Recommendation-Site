@@ -400,10 +400,17 @@ export function CoverflowHero({
             {books.map((book, index) => {
               const step = typeof window !== 'undefined' && window.innerWidth < 640 ? 115 : 165;
               const dragFraction = isDragging ? dragOffset / step : 0;
-              const effectiveOffset = (index - activeIndex) + dragFraction;
+
+              // Infinite circular loop distance calculation
+              const N = books.length;
+              let circularDiff = (index - activeIndex) % N;
+              if (circularDiff > N / 2) circularDiff -= N;
+              if (circularDiff < -N / 2) circularDiff += N;
+
+              const effectiveOffset = circularDiff + dragFraction;
               const absOffset = Math.abs(effectiveOffset);
 
-              // Render visible slides in range
+              // Render visible slides in range (±3.8 covers 7 books seamlessly)
               if (absOffset > 3.8) return null;
 
               // Calculate 3D transforms for Coverflow effect with dynamic drag displacement
@@ -417,6 +424,7 @@ export function CoverflowHero({
               return (
                 <motion.div
                   key={book.id}
+                  initial={false}
                   onClick={(e) => {
                     if (hasDragged.current) {
                       e.preventDefault();
