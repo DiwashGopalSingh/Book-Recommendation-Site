@@ -176,7 +176,7 @@ export function Navbar({ onOpenAuth, onOpenPreferences, savedCount }: NavbarProp
           </div>
           <div>
             <span className="font-serif text-lg font-bold tracking-tight text-stone-900 group-hover:text-teal-700 transition-colors">
-              Open Classics
+              Pardante
             </span>
             <span className="hidden sm:inline-block ml-1.5 text-[10px] font-bold uppercase tracking-wider text-teal-800 bg-teal-700/10 border border-teal-700/20 px-1.5 py-0.5 rounded">
               Community

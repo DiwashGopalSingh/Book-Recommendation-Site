@@ -1,4 +1,4 @@
-# 📚 Community Library - Book Recommendation Site
+# 📚 Pardante - Book Recommendation Site & Community Library
 
 A modern, responsive book recommendation and personal reading tracker website built with Next.js, React, Tailwind CSS, and Drizzle ORM.
 

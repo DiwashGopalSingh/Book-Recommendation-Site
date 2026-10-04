@@ -190,7 +190,7 @@ function LoginContent() {
           </div>
           <div>
             <span className="font-serif text-base font-bold text-white tracking-wide">
-              Open Classics
+              Pardante
             </span>
             <span className="hidden sm:inline-block ml-2 text-[10px] uppercase font-semibold text-teal-400 bg-teal-950/80 border border-teal-500/30 px-1.5 py-0.5 rounded">
               Member Portal

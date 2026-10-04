@@ -314,7 +314,7 @@ export default function CommunityLibraryPage() {
             </div>
             <div>
               <span className="font-serif text-base font-bold text-white tracking-wide">
-                Open Classics
+                Pardante
               </span>
               <span className="hidden sm:inline-block ml-2 text-[10px] uppercase font-semibold text-teal-400 bg-teal-950/80 border border-teal-500/30 px-1.5 py-0.5 rounded">
                 Member Portal
@@ -527,7 +527,7 @@ export default function CommunityLibraryPage() {
             </div>
             <div>
               <p className="font-serif text-base font-bold text-stone-900">
-                Open Classics Community Library
+                Pardante Community Library
               </p>
               <p className="text-xs text-stone-500">
                 500 public domain volumes curated and arranged across 10 literary genres. 100% tracker-free.
