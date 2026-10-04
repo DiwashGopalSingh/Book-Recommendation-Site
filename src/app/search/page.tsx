@@ -3,8 +3,21 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, ArrowLeft, Bookmark, Check, Filter, BookOpen, Star, Sparkles, X } from "lucide-react";
+import {
+  Search,
+  ArrowLeft,
+  Bookmark,
+  Check,
+  Filter,
+  BookOpen,
+  Sparkles,
+  X,
+  Compass,
+  ArrowRight,
+  Layers,
+} from "lucide-react";
 import { SearchResultBook } from "@/lib/catalog/search";
+import { SimilarBookMatch } from "@/lib/recommend/engine";
 
 const AUDIENCE_FILTERS = [
   { label: "All Ages", value: "all" },
@@ -36,22 +49,32 @@ function SearchPageContent() {
   const initialSubject = searchParams.get("subject") || "All Subjects";
 
   const [query, setQuery] = useState(initialQuery);
+  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [audience, setAudience] = useState(initialAudience);
   const [subject, setSubject] = useState(initialSubject);
   const [books, setBooks] = useState<SearchResultBook[]>([]);
+  const [recommendations, setRecommendations] = useState<SimilarBookMatch[]>([]);
   const [total, setTotal] = useState(0);
   const [tookMs, setTookMs] = useState(0);
   const [loading, setLoading] = useState(true);
   const [savedBooks, setSavedBooks] = useState<string[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Fetch search results
+  // Debounce typing input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 180);
+    return () => clearTimeout(handler);
+  }, [query]);
+
+  // Fetch search results and recommendations
   useEffect(() => {
     let isCurrent = true;
     setLoading(true);
 
     const params = new URLSearchParams();
-    if (query) params.set("q", query);
+    if (debouncedQuery) params.set("q", debouncedQuery);
     if (audience && audience !== "all") params.set("audience", audience);
     if (subject && subject !== "All Subjects") params.set("subject", subject);
 
@@ -60,6 +83,7 @@ function SearchPageContent() {
       .then((data) => {
         if (!isCurrent) return;
         setBooks(data.books || []);
+        setRecommendations(data.recommendations || []);
         setTotal(data.total || 0);
         setTookMs(data.tookMs || 0);
         setLoading(false);
@@ -73,7 +97,7 @@ function SearchPageContent() {
     return () => {
       isCurrent = false;
     };
-  }, [query, audience, subject]);
+  }, [debouncedQuery, audience, subject]);
 
   const handleShelfToggle = async (bookSlug: string, bookTitle: string) => {
     const isSaved = savedBooks.includes(bookSlug);
@@ -111,7 +135,7 @@ function SearchPageContent() {
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--shelf-teal)] transition-colors group"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--shelf-teal)] transition-colors group flex-none"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
             <span className="hidden sm:inline">Back to Library</span>
@@ -124,22 +148,22 @@ function SearchPageContent() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by title, author, or philosophy..."
-              className="w-full h-10 pl-10 pr-9 rounded-xl bg-[var(--surface)] border border-[var(--line)] text-sm text-[var(--ink)] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--shelf-teal)]/30 transition-all shadow-sm"
+              placeholder="Search 500 classics, authors, themes (e.g. Sherlock, Dracula, Space)..."
+              className="w-full h-10 pl-10 pr-9 rounded-xl bg-[var(--surface)] border border-[var(--line)] text-sm text-[var(--ink)] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--shelf-teal)]/40 transition-all shadow-sm"
               autoFocus
             />
             {query && (
               <button
                 onClick={() => setQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-0.5"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-0.5 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
 
-          <div className="text-xs font-semibold text-[var(--shelf-teal)] uppercase tracking-wider hidden md:block">
-            {loading ? "Searching..." : `${total} books found (${tookMs}ms)`}
+          <div className="text-xs font-semibold text-[var(--shelf-teal)] uppercase tracking-wider hidden md:block flex-none">
+            {loading ? "Searching 500 books..." : `${total} books found (${tookMs}ms)`}
           </div>
         </div>
       </header>
@@ -157,7 +181,7 @@ function SearchPageContent() {
               <button
                 key={f.value}
                 onClick={() => setAudience(f.value)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   audience === f.value
                     ? "bg-[var(--shelf-teal)] text-white shadow-sm"
                     : "bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] hover:bg-neutral-100 dark:hover:bg-zinc-800"
@@ -177,7 +201,7 @@ function SearchPageContent() {
               <button
                 key={subj}
                 onClick={() => setSubject(subj)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
                   subject === subj
                     ? "bg-[var(--bookmark-amber)] text-white font-semibold shadow-sm"
                     : "bg-[var(--surface)] border border-[var(--line)] text-[var(--muted)] hover:text-[var(--ink)]"
@@ -208,92 +232,216 @@ function SearchPageContent() {
             ))}
           </div>
         ) : books.length === 0 ? (
-          <div className="py-20 text-center flex flex-col items-center justify-center">
-            <BookOpen className="w-12 h-12 text-[var(--muted)] mb-4 stroke-[1.5]" />
-            <h3 className="font-serif text-2xl font-bold mb-2">No matching books found</h3>
-            <p className="text-sm text-[var(--muted)] max-w-md">
-              We couldn't find any books matching &quot;{query}&quot; with the selected filters. Try broadening your keywords or clearing the genre filters.
-            </p>
-            <button
-              onClick={() => {
-                setQuery("");
-                setAudience("all");
-                setSubject("All Subjects");
-              }}
-              className="mt-6 px-4 py-2 rounded-xl bg-[var(--shelf-teal)] text-white text-xs font-semibold hover:brightness-110 shadow-sm"
-            >
-              Reset All Filters
-            </button>
+          /* Empty Search State with Smart Recommendations */
+          <div className="py-12 flex flex-col items-center">
+            <div className="text-center max-w-lg mb-10">
+              <BookOpen className="w-12 h-12 text-[var(--muted)] mx-auto mb-4 stroke-[1.5]" />
+              <h3 className="font-serif text-2xl font-bold mb-2">No exact match for &quot;{query}&quot;</h3>
+              <p className="text-sm text-[var(--muted)] leading-relaxed">
+                We couldn&apos;t find an exact title matching that query with current filters. Here are recommended landmark classics from our curated collection:
+              </p>
+              <button
+                onClick={() => {
+                  setQuery("");
+                  setAudience("all");
+                  setSubject("All Subjects");
+                }}
+                className="mt-4 px-4 py-2 rounded-xl bg-[var(--shelf-teal)] text-white text-xs font-semibold hover:brightness-110 shadow-sm cursor-pointer"
+              >
+                Clear Filters & Show All Books
+              </button>
+            </div>
+
+            {/* Recommendations Grid for Empty Search */}
+            {recommendations.length > 0 && (
+              <div className="w-full">
+                <div className="flex items-center gap-2 text-xs font-bold text-[var(--shelf-teal)] uppercase tracking-wider mb-4">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <span>Curated Recommended Volumes</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                  {recommendations.map((reco) => (
+                    <div
+                      key={reco.slug}
+                      className="group relative flex flex-col rounded-2xl bg-[var(--surface)] border border-[var(--line)] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+                    >
+                      <Link href={`/book/${reco.slug}`} className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900 block">
+                        <img
+                          src={reco.coverUrl}
+                          alt={reco.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div className="absolute top-2 right-2 bg-neutral-950/90 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                          {reco.matchPercentage}% Match
+                        </div>
+                        <div className="absolute bottom-2 left-2 bg-neutral-950/80 text-neutral-300 text-[9px] font-medium px-1.5 py-0.5 rounded">
+                          {reco.genreBadge}
+                        </div>
+                      </Link>
+
+                      <div className="p-3.5 flex flex-col flex-1 justify-between">
+                        <div>
+                          <Link
+                            href={`/book/${reco.slug}`}
+                            className="font-serif font-bold text-sm text-[var(--ink)] hover:text-[var(--shelf-teal)] line-clamp-1 transition-colors"
+                          >
+                            {reco.title}
+                          </Link>
+                          <p className="text-xs text-[var(--muted)] line-clamp-1 mt-0.5">
+                            {reco.authorName} · {reco.year}
+                          </p>
+                        </div>
+                        <div className="mt-2.5 pt-2 border-t border-[var(--line)]/50">
+                          <p className="text-[10px] text-[var(--shelf-teal)] line-clamp-2">
+                            {reco.reason}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-            {books.map((book) => {
-              const isSaved = savedBooks.includes(book.slug);
-              return (
-                <div
-                  key={book.id}
-                  className="group relative flex flex-col rounded-2xl bg-[var(--surface)] border border-[var(--line)] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
-                >
-                  {/* Cover */}
-                  <Link
-                    href={`/book/${book.slug}`}
-                    className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900 block"
+          /* Active Results State */
+          <div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+              {books.map((book) => {
+                const isSaved = savedBooks.includes(book.slug);
+                return (
+                  <div
+                    key={book.id}
+                    className="group relative flex flex-col rounded-2xl bg-[var(--surface)] border border-[var(--line)] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
                   >
-                    <img
-                      src={book.coverUrl}
-                      alt={book.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-
-                    {/* Audience Badge */}
-                    <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-teal-300 border border-teal-500/30">
-                      {book.audienceLevel}
-                    </span>
-
-                    {/* Bookmark Button */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleShelfToggle(book.slug, book.title);
-                      }}
-                      className={`absolute top-2 right-2 z-20 p-1.5 rounded-full backdrop-blur-md shadow-md transition-all ${
-                        isSaved
-                          ? "bg-[var(--shelf-teal)] text-white"
-                          : "bg-black/60 text-white/80 hover:bg-black/90 hover:text-white"
-                      }`}
-                      aria-label="Save to shelf"
+                    {/* Cover */}
+                    <Link
+                      href={`/book/${book.slug}`}
+                      className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900 block"
                     >
-                      {isSaved ? <Check className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
-                    </button>
-                  </Link>
+                      <img
+                        src={book.coverUrl}
+                        alt={book.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute top-2 right-2 bg-neutral-900/80 backdrop-blur-md text-white text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        {book.audienceLevel}
+                      </div>
+                      <div className="absolute bottom-2 left-2 bg-neutral-950/80 text-neutral-300 text-[9px] font-medium px-1.5 py-0.5 rounded">
+                        {book.genreBadge}
+                      </div>
+                    </Link>
 
-                  {/* Info */}
-                  <div className="p-3 flex-1 flex flex-col justify-between">
-                    <div>
-                      <Link href={`/book/${book.slug}`} className="block">
-                        <h4 className="font-serif font-bold text-sm text-[var(--ink)] line-clamp-1 group-hover:text-[var(--shelf-teal)] transition-colors">
+                    {/* Book Details */}
+                    <div className="p-3.5 flex flex-col flex-1 justify-between">
+                      <div>
+                        <Link
+                          href={`/book/${book.slug}`}
+                          className="font-serif font-bold text-sm text-[var(--ink)] hover:text-[var(--shelf-teal)] line-clamp-1 transition-colors"
+                        >
                           {book.title}
-                        </h4>
-                      </Link>
-                      <p className="text-xs text-[var(--muted)] line-clamp-1 mt-0.5">
-                        {book.authorName} · {book.firstPublishYear ? (book.firstPublishYear < 0 ? `${Math.abs(book.firstPublishYear)} BCE` : book.firstPublishYear) : "Classic"}
-                      </p>
-                    </div>
+                        </Link>
+                        <p className="text-xs text-[var(--muted)] line-clamp-1 mt-0.5">
+                          {book.authorName} · {book.firstPublishYear || "Classic"}
+                        </p>
+                      </div>
 
-                    <div className="mt-3 pt-2 border-t border-[var(--line)] flex items-center justify-between text-[11px] text-[var(--muted)]">
-                      <span className="font-medium text-[var(--moss)]">
-                        {book.pageCount} pages
-                      </span>
-                      <span className="capitalize text-[10px] bg-neutral-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-[var(--muted)]">
-                        {book.subjects[0] || "Classic"}
-                      </span>
+                      {/* Shelf Action */}
+                      <button
+                        onClick={() => handleShelfToggle(book.slug, book.title)}
+                        className={`mt-3 w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                          isSaved
+                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                            : "bg-[var(--paper)] text-[var(--ink)] border border-[var(--line)] hover:bg-[var(--shelf-teal)] hover:text-white hover:border-transparent"
+                        }`}
+                      >
+                        {isSaved ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-500" />
+                            <span>Shelved</span>
+                          </>
+                        ) : (
+                          <>
+                            <Bookmark className="w-3.5 h-3.5" />
+                            <span>Want to Read</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
+                );
+              })}
+            </div>
+
+            {/* Smart Recommendations Below Results */}
+            {recommendations.length > 0 && (
+              <section className="mt-16 pt-10 border-t border-[var(--line)]">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--shelf-teal)] uppercase tracking-wider mb-1">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      <span>Recommended Related Classics</span>
+                    </div>
+                    <h2 className="text-xl md:text-2xl font-serif font-bold text-[var(--ink)]">
+                      You Might Also Enjoy
+                    </h2>
+                    <p className="text-xs text-[var(--muted)] mt-0.5">
+                      Matched by genre and thematic affinity to your search results
+                    </p>
+                  </div>
+                  <span className="hidden sm:inline-flex items-center gap-1 text-xs text-[var(--muted)] bg-[var(--surface)] px-3 py-1 rounded-full border border-[var(--line)]">
+                    <Layers className="w-3.5 h-3.5 text-[var(--shelf-teal)]" />
+                    <span>Content RecSys</span>
+                  </span>
                 </div>
-              );
-            })}
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                  {recommendations.slice(0, 6).map((reco) => (
+                    <div
+                      key={reco.slug}
+                      className="group relative flex flex-col rounded-2xl bg-[var(--surface)] border border-[var(--line)] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+                    >
+                      <Link href={`/book/${reco.slug}`} className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900 block">
+                        <img
+                          src={reco.coverUrl}
+                          alt={reco.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div className="absolute top-2 right-2 bg-neutral-950/90 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                          {reco.matchPercentage}% Match
+                        </div>
+                        <div className="absolute bottom-2 left-2 bg-neutral-950/80 text-neutral-300 text-[9px] font-medium px-1.5 py-0.5 rounded">
+                          {reco.genreBadge}
+                        </div>
+                      </Link>
+
+                      <div className="p-3.5 flex flex-col flex-1 justify-between">
+                        <div>
+                          <Link
+                            href={`/book/${reco.slug}`}
+                            className="font-serif font-bold text-sm text-[var(--ink)] hover:text-[var(--shelf-teal)] line-clamp-1 transition-colors"
+                          >
+                            {reco.title}
+                          </Link>
+                          <p className="text-xs text-[var(--muted)] line-clamp-1 mt-0.5">
+                            {reco.authorName} · {reco.year}
+                          </p>
+                        </div>
+                        <div className="mt-2.5 pt-2 border-t border-[var(--line)]/50">
+                          <p className="text-[10px] text-[var(--shelf-teal)] line-clamp-2">
+                            {reco.reason}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </main>
@@ -303,16 +451,7 @@ function SearchPageContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[var(--paper)] flex items-center justify-center text-[var(--muted)]">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <span className="w-2 h-2 rounded-full bg-[var(--shelf-teal)] animate-ping" />
-            Loading catalog search...
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="min-h-screen bg-[var(--paper)] flex items-center justify-center">Loading search catalog...</div>}>
       <SearchPageContent />
     </Suspense>
   );
