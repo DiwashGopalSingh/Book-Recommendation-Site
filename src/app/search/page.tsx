@@ -273,10 +273,10 @@ function SearchPageContent() {
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           loading="lazy"
                         />
-                        <div className="absolute top-2 right-2 bg-neutral-950/90 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                        <div className="absolute top-2 right-2 bg-white/95 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-600/30 shadow-xs">
                           {reco.matchPercentage}% Match
                         </div>
-                        <div className="absolute bottom-2 left-2 bg-neutral-950/80 text-neutral-300 text-[9px] font-medium px-1.5 py-0.5 rounded">
+                        <div className="absolute bottom-2 left-2 bg-white/95 text-stone-700 text-[9px] font-medium px-1.5 py-0.5 rounded border border-stone-200 shadow-xs">
                           {reco.genreBadge}
                         </div>
                       </Link>
@@ -343,10 +343,10 @@ function SearchPageContent() {
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
                       />
-                      <div className="absolute top-2 right-2 bg-neutral-900/80 backdrop-blur-md text-white text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      <div className="absolute top-2 right-2 bg-white/95 text-stone-800 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider border border-stone-200 shadow-xs">
                         {book.audienceLevel}
                       </div>
-                      <div className="absolute bottom-2 left-2 bg-neutral-950/80 text-neutral-300 text-[9px] font-medium px-1.5 py-0.5 rounded">
+                      <div className="absolute bottom-2 left-2 bg-white/95 text-stone-700 text-[9px] font-medium px-1.5 py-0.5 rounded border border-stone-200 shadow-xs">
                         {book.genreBadge}
                       </div>
                     </Link>
@@ -427,10 +427,10 @@ function SearchPageContent() {
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           loading="lazy"
                         />
-                        <div className="absolute top-2 right-2 bg-neutral-950/90 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                        <div className="absolute top-2 right-2 bg-white/95 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-600/30 shadow-xs">
                           {reco.matchPercentage}% Match
                         </div>
-                        <div className="absolute bottom-2 left-2 bg-neutral-950/80 text-neutral-300 text-[9px] font-medium px-1.5 py-0.5 rounded">
+                        <div className="absolute bottom-2 left-2 bg-white/95 text-stone-700 text-[9px] font-medium px-1.5 py-0.5 rounded border border-stone-200 shadow-xs">
                           {reco.genreBadge}
                         </div>
                       </Link>

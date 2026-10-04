@@ -1,1 +1,15 @@
-{}
+{
+  "the-wonderful-wizard-of-oz": {
+    "id": "shelf_the-wonderful-wizard-of-oz_1791111920886",
+    "slug": "the-wonderful-wizard-of-oz",
+    "title": "The Wonderful Wizard of Oz",
+    "authorName": "L. Frank Baum",
+    "coverUrl": "https://covers.openlibrary.org/b/id/8232340-M.jpg",
+    "genreBadge": "Children's & YA",
+    "genreSlug": "childrens-ya",
+    "status": "want_to_read",
+    "rating": null,
+    "addedAt": "2026-10-04T11:05:20.885Z",
+    "updatedAt": "2026-10-04T11:05:33.600Z"
+  }
+}

@@ -67,7 +67,7 @@ export default function PersonalizedRecommendationsSection({
   if (loading && !data) {
     return (
       <div className="mx-auto max-w-[1400px] px-4 py-8">
-        <div className="h-64 rounded-2xl bg-neutral-900/40 border border-white/5 animate-pulse flex items-center justify-center text-neutral-500 text-sm">
+        <div className="h-64 rounded-2xl bg-stone-200/50 border border-[#E5DDD0] animate-pulse flex items-center justify-center text-stone-600 text-sm">
           Computing personalized taste recommendations...
         </div>
       </div>

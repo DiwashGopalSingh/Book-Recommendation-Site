@@ -21,27 +21,12 @@
   --brick: #BE123C;
   --moss: #047857;
   --line: #E5DDD0;
-}
-
-.dark {
-  --foreground: 0 0% 98%;
-  --background: 0 0% 9%;
-  --skeleton: #6366f1;
-  --zinc-800: #27272a;
-  --ink: #F9FAFB;
-  --paper: #0B0F17;
-  --surface: #111827;
-  --shelf-teal: #14B8A6;
-  --bookmark-amber: #F59E0B;
-  --plum: #A855F7;
-  --brick: #EF4444;
-  --moss: #10B981;
-  --line: #1F2937;
+  --muted: #78716C;
 }
 
 body {
   color: rgb(var(--foreground));
-  background: rgb(var(--background));
+  background-color: #FAF7F2;
   min-height: 100vh;
 }
 

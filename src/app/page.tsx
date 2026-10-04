@@ -218,11 +218,11 @@ export default function CommunityLibraryPage() {
   // SSR loading skeleton
   if (!authChecked) {
     return (
-      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center text-white px-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-500/20 text-teal-400 border border-teal-500/30 mb-4 animate-pulse">
-          <Lock className="h-6 w-6" />
+      <div className="min-h-screen bg-[#FAF7F2] flex flex-col items-center justify-center text-stone-900 px-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-700/10 text-teal-800 border border-teal-700/20 mb-4 animate-pulse">
+          <BookOpen className="h-6 w-6" />
         </div>
-        <p className="text-sm font-medium text-neutral-300">Opening library portal...</p>
+        <p className="text-sm font-medium text-stone-600">Opening library portal...</p>
       </div>
     );
   }

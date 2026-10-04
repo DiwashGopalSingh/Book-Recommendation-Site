@@ -56,12 +56,12 @@ export default function SimilarBooksSection({
                 loading="lazy"
               />
               {/* Match Score Badge */}
-              <div className="absolute top-2 right-2 bg-neutral-900/85 backdrop-blur-md text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30 shadow-md">
+              <div className="absolute top-2 right-2 bg-white/95 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-600/30 backdrop-blur-xs shadow-xs">
                 {book.matchPercentage}% Match
               </div>
 
               {/* Genre pill */}
-              <div className="absolute bottom-2 left-2 bg-neutral-900/80 backdrop-blur-sm text-neutral-200 text-[9px] font-medium px-1.5 py-0.5 rounded">
+              <div className="absolute bottom-2 left-2 bg-white/95 text-stone-700 text-[9px] font-medium px-1.5 py-0.5 rounded border border-stone-200 backdrop-blur-xs">
                 {book.genreBadge}
               </div>
             </div>
