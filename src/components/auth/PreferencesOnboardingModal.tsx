@@ -179,10 +179,10 @@ export default function PreferencesOnboardingModal({
   };
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative flex flex-col w-full max-w-4xl max-h-[90vh] rounded-3xl border border-[#E5DDD0] bg-[#FAF7F2] text-[#1C1917] shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[9999] isolate flex items-center justify-center p-3 sm:p-6 bg-stone-950/75 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative z-10 flex flex-col w-full max-w-4xl max-h-[90vh] rounded-3xl border border-[#E5DDD0] bg-[#FAF7F2] text-[#1C1917] shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[#E5DDD0] bg-white/80">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[#E5DDD0] bg-white/95 flex-none">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700/10 text-teal-800 border border-teal-700/20">
               <Sparkles className="h-5 w-5" />
@@ -350,7 +350,7 @@ export default function PreferencesOnboardingModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[#E5DDD0] bg-white/80">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-[#E5DDD0] bg-white/95 flex-none">
           <div className="text-xs text-stone-600">
             <span className="font-semibold text-stone-900">{selectedGenres.length} Genres</span>
             {' · '}

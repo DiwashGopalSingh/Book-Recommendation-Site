@@ -177,10 +177,10 @@ export default function MyShelfModal({
       : shelvedBooks.filter((b) => b.status === activeTab);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] isolate flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-60 flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 text-sm text-teal-300 shadow-2xl border border-teal-500/30 animate-in fade-in slide-in-from-bottom-3 duration-200">
+        <div className="fixed bottom-6 right-6 z-[10000] flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-3 text-sm text-teal-300 shadow-2xl border border-teal-500/30 animate-in fade-in slide-in-from-bottom-3 duration-200">
           <Sparkles className="h-4 w-4 text-amber-400 flex-none" />
           <span>{toastMessage}</span>
         </div>
