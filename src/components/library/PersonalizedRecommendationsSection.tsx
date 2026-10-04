@@ -2,17 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Sparkles, Bookmark, Check, Compass, Info, ArrowRight, ShieldCheck, Flame } from 'lucide-react';
+import { Sparkles, Bookmark, Check, Compass, Info, ArrowRight, ShieldCheck, Flame, SlidersHorizontal } from 'lucide-react';
 import { SimilarBookMatch, RecommendationResponse } from '@/lib/recommend/engine';
+import { UserPreferences } from '@/lib/auth';
 
 interface PersonalizedRecommendationsSectionProps {
   savedBooks: string[];
+  preferences?: UserPreferences;
   onShelfToggle: (bookId: string) => void;
+  onEditPreferences?: () => void;
 }
 
 export default function PersonalizedRecommendationsSection({
   savedBooks,
+  preferences,
   onShelfToggle,
+  onEditPreferences,
 }: PersonalizedRecommendationsSectionProps) {
   const [data, setData] = useState<RecommendationResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +33,7 @@ export default function PersonalizedRecommendationsSection({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             shelvedSlugs: savedBooks,
+            preferences,
             limit: 6,
           }),
         });
@@ -46,10 +52,17 @@ export default function PersonalizedRecommendationsSection({
 
     fetchRecos();
 
+    const handlePrefsUpdated = (e: Event) => {
+      fetchRecos();
+    };
+
+    window.addEventListener('preferences-updated', handlePrefsUpdated);
+
     return () => {
       isCancelled = true;
+      window.removeEventListener('preferences-updated', handlePrefsUpdated);
     };
-  }, [savedBooks]);
+  }, [savedBooks, preferences]);
 
   if (loading && !data) {
     return (
@@ -63,6 +76,12 @@ export default function PersonalizedRecommendationsSection({
 
   if (!data || data.recommendations.length === 0) return null;
 
+  const hasPreferences = Boolean(
+    preferences &&
+      ((preferences.genres && preferences.genres.length > 0) ||
+        (preferences.interests && preferences.interests.length > 0))
+  );
+
   return (
     <section className="relative mx-auto max-w-[1400px] px-4 py-8">
       {/* Background Subtle Warm Tint */}
@@ -75,32 +94,90 @@ export default function PersonalizedRecommendationsSection({
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-700/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-teal-800 border border-teal-700/20">
                 <Sparkles className="h-3.5 w-3.5" />
-                {data.isColdStart ? 'Curated Taste Foundations' : 'Dynamic Taste Profile'}
+                {hasPreferences
+                  ? 'Matched to Your Preferences & Interests'
+                  : data.isColdStart
+                  ? 'Curated Taste Foundations'
+                  : 'Dynamic Taste Profile'}
               </span>
 
-              {!data.isColdStart && (
+              {savedBooks.length > 0 && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-700/10 px-2.5 py-0.5 text-xs font-medium text-emerald-800 border border-emerald-700/20">
                   <Check className="h-3 w-3" />
                   {savedBooks.length} Books on Shelf
                 </span>
               )}
+
+              {preferences?.readingGoal && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-600/10 px-2.5 py-0.5 text-xs font-medium text-amber-800 border border-amber-600/20">
+                  <Compass className="h-3 w-3" />
+                  {preferences.readingGoal}
+                </span>
+              )}
             </div>
 
             <h2 className="text-2xl md:text-3xl font-serif font-bold text-stone-900 tracking-tight">
-              {data.isColdStart ? 'Recommended For You · Curator Highlights' : 'Recommended For You · Tailored Selections'}
+              {hasPreferences
+                ? 'Recommended For You · Tailored to Your Tastes'
+                : data.isColdStart
+                ? 'Recommended For You · Curator Highlights'
+                : 'Recommended For You · Tailored Selections'}
             </h2>
 
             <p className="mt-1 text-sm text-stone-600 max-w-2xl leading-relaxed flex items-start gap-1.5">
               <Info className="h-4 w-4 text-teal-700 flex-none mt-0.5" />
               <span>{data.explanationNote}</span>
             </p>
+
+            {/* Interest badges chips */}
+            {hasPreferences && (
+              <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="text-stone-500 font-medium">Active interests:</span>
+                {preferences?.interests?.slice(0, 3).map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-md bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-700 border border-stone-200"
+                  >
+                    {item}
+                  </span>
+                ))}
+                {preferences?.genres?.slice(0, 2).map((g) => (
+                  <span
+                    key={g}
+                    className="rounded-md bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-800 border border-teal-200"
+                  >
+                    {g}
+                  </span>
+                ))}
+                {onEditPreferences && (
+                  <button
+                    onClick={onEditPreferences}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-700 hover:text-teal-900 hover:underline cursor-pointer ml-1"
+                  >
+                    <SlidersHorizontal className="h-3 w-3" />
+                    <span>Change Preferences</span>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className="flex flex-col items-start md:items-end gap-1 text-xs text-stone-500">
-            <span className="font-semibold text-stone-700">Recommender Transparency</span>
-            <span className="text-[11px] text-stone-500">
-              No private trackers · Local vector &amp; subject affinity
-            </span>
+          <div className="flex flex-col items-start md:items-end gap-2 text-xs text-stone-500">
+            {onEditPreferences && !hasPreferences && (
+              <button
+                onClick={onEditPreferences}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#E5DDD0] bg-[#FAF7F2] hover:bg-teal-50 hover:border-teal-400 px-3 py-1.5 font-semibold text-stone-800 hover:text-teal-900 transition-colors cursor-pointer shadow-xs"
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5 text-teal-700" />
+                <span>Customize Your Interests</span>
+              </button>
+            )}
+            <div className="text-right">
+              <span className="font-semibold text-stone-700 block">Recommender Transparency</span>
+              <span className="text-[11px] text-stone-500">
+                Private offline taste profile · Vector &amp; subject matching
+              </span>
+            </div>
           </div>
         </div>
 

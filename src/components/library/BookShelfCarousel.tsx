@@ -23,6 +23,7 @@ export interface BookItem {
 export interface ShelfSectionProps {
   title: string;
   subtitle?: string;
+  tagBadge?: string;
   books: BookItem[];
   onBookShelfToggle?: (bookId: string) => void;
   savedBooks?: string[];
@@ -110,6 +111,7 @@ export const BookCard = ({
 export const ShelfSection = ({
   title,
   subtitle,
+  tagBadge,
   books = [],
   onBookShelfToggle,
   savedBooks = [],
@@ -134,9 +136,16 @@ export const ShelfSection = ({
         {/* Shelf Header */}
         <div className="mb-4 flex items-end justify-between">
           <div>
-            <h2 className="font-serif font-bold text-xl sm:text-2xl text-stone-900 tracking-tight">
-              {title}
-            </h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-serif font-bold text-xl sm:text-2xl text-stone-900 tracking-tight">
+                {title}
+              </h2>
+              {tagBadge && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-teal-700/10 px-2.5 py-0.5 text-xs font-bold text-teal-800 border border-teal-700/20">
+                  {tagBadge}
+                </span>
+              )}
+            </div>
             {subtitle && (
               <p className="text-xs sm:text-sm text-stone-500 mt-1">
                 {subtitle}

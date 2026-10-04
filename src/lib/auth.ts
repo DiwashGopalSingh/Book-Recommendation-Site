@@ -1,13 +1,20 @@
-﻿/**
+/**
  * Community Library Authentication System
  * Includes dummy account credentials and session helpers.
  */
+
+export interface UserPreferences {
+  genres: string[];
+  interests: string[];
+  readingGoal?: string;
+}
 
 export interface UserProfile {
   email: string;
   name: string;
   avatar?: string;
   joinedDate?: string;
+  preferences?: UserPreferences;
 }
 
 export const DUMMY_ACCOUNT = {
@@ -15,6 +22,11 @@ export const DUMMY_ACCOUNT = {
   password: 'password123',
   name: 'Demo Reader',
   role: 'Community Member',
+  preferences: {
+    genres: ['sci-fi', 'philosophy', 'mystery-crime'],
+    interests: ['Space, Time & Future Visions', 'Stoicism & Ancient Wisdom', 'Victorian Whodunits & Sleuths'],
+    readingGoal: 'Consistent Reader (1-2 books/month)',
+  },
 };
 
 const AUTH_COOKIE_NAME = 'cl_session';
@@ -110,6 +122,7 @@ export function signInUser(
       email: DUMMY_ACCOUNT.email,
       name: DUMMY_ACCOUNT.name,
       joinedDate: 'October 2026',
+      preferences: DUMMY_ACCOUNT.preferences,
     };
     saveUserSession(user);
     return { success: true, user };
@@ -130,6 +143,7 @@ export function signInUser(
           email: matched.email,
           name: matched.name || 'Community Reader',
           joinedDate: 'Recent',
+          preferences: matched.preferences || undefined,
         };
         saveUserSession(user);
         return { success: true, user };
@@ -149,7 +163,8 @@ export function signInUser(
 export function signUpUser(
   name: string,
   email: string,
-  pass: string
+  pass: string,
+  preferences?: UserPreferences
 ): { success: boolean; user?: UserProfile; error?: string } {
   const cleanEmail = email.trim().toLowerCase();
   if (!cleanEmail || !pass) {
@@ -160,6 +175,7 @@ export function signUpUser(
     email: cleanEmail,
     name: name.trim() || 'Community Reader',
     joinedDate: 'Today',
+    preferences: preferences || undefined,
   };
 
   if (typeof window !== 'undefined') {
@@ -167,17 +183,58 @@ export function signUpUser(
       const stored = JSON.parse(
         localStorage.getItem('registered_accounts') || '[]'
       );
-      stored.push({
+      // Remove any existing with same email
+      const filtered = stored.filter((a: any) => a.email !== cleanEmail);
+      filtered.push({
         name: user.name,
         email: cleanEmail,
         password: pass,
+        preferences: user.preferences,
       });
-      localStorage.setItem('registered_accounts', JSON.stringify(stored));
+      localStorage.setItem('registered_accounts', JSON.stringify(filtered));
     } catch (_) {}
   }
 
   saveUserSession(user);
   return { success: true, user };
+}
+
+/**
+ * Update current user preferences and broadcast change
+ */
+export function updateUserPreferences(preferences: UserPreferences): UserProfile | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const raw = localStorage.getItem(USER_STORAGE_KEY);
+    if (!raw) return null;
+    const user: UserProfile = JSON.parse(raw);
+    user.preferences = preferences;
+
+    // Update active user session
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+
+    // Update registered accounts list
+    const stored = JSON.parse(
+      localStorage.getItem('registered_accounts') || '[]'
+    );
+    const updated = stored.map((acc: any) => {
+      if (acc.email?.toLowerCase() === user.email?.toLowerCase()) {
+        return { ...acc, preferences };
+      }
+      return acc;
+    });
+    localStorage.setItem('registered_accounts', JSON.stringify(updated));
+
+    // Notify listeners
+    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user } }));
+    window.dispatchEvent(new CustomEvent('preferences-updated', { detail: { preferences } }));
+
+    return user;
+  } catch (err) {
+    console.error('Failed to update user preferences:', err);
+    return null;
+  }
 }
 
 /**

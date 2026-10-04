@@ -55,9 +55,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { shelvedSlugs = [], limit = 8 } = body;
+    const { shelvedSlugs = [], limit = 8, preferences } = body;
 
-    const reco = getPersonalizedRecommendations(shelvedSlugs, limit);
+    const reco = getPersonalizedRecommendations(shelvedSlugs, limit, preferences);
     return NextResponse.json(reco);
   } catch (error) {
     console.error("POST /api/recommendations error:", error);

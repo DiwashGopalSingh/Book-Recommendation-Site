@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar, CoverflowHero, ShelfSection, ALL_GENRE_SHELVES, PersonalizedRecommendationsSection } from '@/components/library';
-import { AuthTabs } from '@/components/auth';
+import { AuthTabs, PreferencesOnboardingModal } from '@/components/auth';
 import {
   checkIsAuthenticated,
   clearStaleSession,
@@ -13,6 +13,7 @@ import {
   logoutUser,
   DUMMY_ACCOUNT,
   UserProfile,
+  UserPreferences,
 } from '@/lib/auth';
 import {
   BookOpen,
@@ -32,6 +33,7 @@ export default function CommunityLibraryPage() {
   const [savedBooks, setSavedBooks] = useState<string[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [activeGenreFilter, setActiveGenreFilter] = useState<string>('all');
+  const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
 
   // Login form state
   const [isSignUp, setIsSignUp] = useState(false);
@@ -124,6 +126,14 @@ export default function CommunityLibraryPage() {
     setTimeout(() => setStatusMessage(null), 3000);
   };
 
+  const handlePreferencesComplete = (preferences: UserPreferences) => {
+    setIsPreferencesModalOpen(false);
+    const updated = getCurrentUser();
+    setCurrentUser(updated);
+    setStatusMessage(`Welcome, ${updated.name}! Your reading preferences have been saved.`);
+    setTimeout(() => setStatusMessage(null), 4000);
+  };
+
   const handleLoginSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setAuthLoading(true);
@@ -135,8 +145,10 @@ export default function CommunityLibraryPage() {
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('library_active_session', 'true');
         }
-        setStatusMessage(`Account created! Welcome, ${result.user.name}!`);
+        // Save user and immediately display Preferences & Interests Questionnaire
         setCurrentUser(result.user);
+        setIsPreferencesModalOpen(true);
+        setStatusMessage(`Account created! Welcome, ${result.user.name}. Let's personalize your library.`);
         setTimeout(() => setStatusMessage(null), 3000);
       } else {
         setAuthError(result.error || 'Failed to create account.');
@@ -363,9 +375,20 @@ export default function CommunityLibraryPage() {
   // 2. MAIN SECTION: COMMUNITY LIBRARY (Shown after user logs in)
   // =========================================================================
 
+  const userPreferredGenres = currentUser?.preferences?.genres || [];
+
+  // Reorder shelves so user's preferred genres appear at the top
+  const sortedShelves = [...ALL_GENRE_SHELVES].sort((a, b) => {
+    const aMatch = userPreferredGenres.includes(a.slug);
+    const bMatch = userPreferredGenres.includes(b.slug);
+    if (aMatch && !bMatch) return -1;
+    if (!aMatch && bMatch) return 1;
+    return 0;
+  });
+
   const displayedShelves =
     activeGenreFilter === 'all'
-      ? ALL_GENRE_SHELVES
+      ? sortedShelves
       : ALL_GENRE_SHELVES.filter((shelf) => shelf.slug === activeGenreFilter);
 
   const totalCatalogBooks = ALL_GENRE_SHELVES.reduce((acc, s) => acc + s.books.length, 0);
@@ -373,7 +396,10 @@ export default function CommunityLibraryPage() {
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-[#1C1917] transition-colors selection:bg-teal-200">
       {/* Global Navigation Bar */}
-      <Navbar savedCount={savedBooks.length} />
+      <Navbar
+        savedCount={savedBooks.length}
+        onOpenPreferences={() => setIsPreferencesModalOpen(true)}
+      />
 
       {/* Floating Status Notification Toast */}
       {statusMessage && (
@@ -391,11 +417,13 @@ export default function CommunityLibraryPage() {
         />
       </section>
 
-      {/* Stage B: Personalized RecSys Section Based on User Shelves */}
+      {/* Stage B: Personalized RecSys Section Based on User Shelves & Preferences */}
       <section className="w-full bg-[#FAF7F2]">
         <PersonalizedRecommendationsSection
           savedBooks={savedBooks}
+          preferences={currentUser?.preferences}
           onShelfToggle={handleShelfToggle}
+          onEditPreferences={() => setIsPreferencesModalOpen(true)}
         />
       </section>
 
@@ -413,11 +441,17 @@ export default function CommunityLibraryPage() {
               <span className="rounded-full bg-teal-700/10 px-2.5 py-0.5 text-[11px] font-semibold text-teal-800 border border-teal-700/20">
                 {totalCatalogBooks} Curated Volumes
               </span>
+              {userPreferredGenres.length > 0 && (
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800 border border-amber-500/30">
+                  <Sparkles className="h-3 w-3 text-amber-600" />
+                  <span>Prioritizing Your Favorite Genres</span>
+                </span>
+              )}
             </div>
 
             <div className="hidden md:flex items-center gap-2 text-xs text-stone-600 font-medium">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-              <span>50 Landmark Works per Genre · Arranged & Verified</span>
+              <span>50 Landmark Works per Genre · Arranged &amp; Verified</span>
             </div>
           </div>
 
@@ -434,36 +468,55 @@ export default function CommunityLibraryPage() {
               All Genres ({totalCatalogBooks})
             </button>
 
-            {ALL_GENRE_SHELVES.map((shelf) => (
-              <button
-                key={shelf.slug}
-                onClick={() => setActiveGenreFilter(shelf.slug)}
-                className={`flex-none rounded-lg px-3 py-1.5 font-medium transition-all ${
-                  activeGenreFilter === shelf.slug
-                    ? 'bg-teal-700 text-white shadow-sm'
-                    : 'bg-[#EFE9DF] text-stone-700 hover:bg-[#E4DDD0] hover:text-stone-900 border border-[#DDD5C7]'
-                }`}
-              >
-                {shelf.badge} ({shelf.books.length})
-              </button>
-            ))}
+            {ALL_GENRE_SHELVES.map((shelf) => {
+              const isPreferred = userPreferredGenres.includes(shelf.slug);
+              const isActive = activeGenreFilter === shelf.slug;
+              return (
+                <button
+                  key={shelf.slug}
+                  onClick={() => setActiveGenreFilter(shelf.slug)}
+                  className={`flex-none inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-medium transition-all ${
+                    isActive
+                      ? 'bg-teal-700 text-white shadow-sm'
+                      : isPreferred
+                      ? 'bg-amber-100/90 text-amber-900 border border-amber-300 hover:bg-amber-200/80 font-semibold'
+                      : 'bg-[#EFE9DF] text-stone-700 hover:bg-[#E4DDD0] hover:text-stone-900 border border-[#DDD5C7]'
+                  }`}
+                >
+                  {isPreferred && !isActive && <Sparkles className="h-3 w-3 text-amber-600" />}
+                  <span>{shelf.badge} ({shelf.books.length})</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Community Content Shelves Arranged by Genre */}
+      {/* Community Content Shelves Arranged by Genre (prioritizing user preferences) */}
       <main id="shelves" className="w-full bg-[#FAF7F2] pb-20">
-        {displayedShelves.map((shelf) => (
-          <ShelfSection
-            key={shelf.slug}
-            title={shelf.title}
-            subtitle={`${shelf.subtitle} · ${shelf.books.length} curated volumes`}
-            books={shelf.books}
-            onBookShelfToggle={handleShelfToggle}
-            savedBooks={savedBooks}
-          />
-        ))}
+        {displayedShelves.map((shelf) => {
+          const isPreferred = userPreferredGenres.includes(shelf.slug);
+          return (
+            <ShelfSection
+              key={shelf.slug}
+              title={shelf.title}
+              subtitle={`${shelf.subtitle} · ${shelf.books.length} curated volumes`}
+              tagBadge={isPreferred ? '★ Matches Your Reading Interests' : undefined}
+              books={shelf.books}
+              onBookShelfToggle={handleShelfToggle}
+              savedBooks={savedBooks}
+            />
+          );
+        })}
       </main>
+
+      {/* Preferences & Interests Onboarding / Customization Modal */}
+      <PreferencesOnboardingModal
+        isOpen={isPreferencesModalOpen}
+        user={currentUser}
+        onComplete={handlePreferencesComplete}
+        onClose={() => setIsPreferencesModalOpen(false)}
+      />
 
       {/* Footer */}
       <footer className="w-full border-t border-[#E5DDD0] bg-[#F1EAE0] py-12 text-stone-600">

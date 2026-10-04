@@ -77,13 +77,30 @@ export function getSimilarBooks(slug: string, limit = 8): SimilarBookMatch[] {
  * 2. Get Personalized Recommendations based on a user's shelved/rated books.
  * Transparent explanation generated for every recommendation.
  */
+export interface UserPreferencesInput {
+  genres?: string[];
+  interests?: string[];
+  readingGoal?: string;
+}
+
+/**
+ * 2. Get Personalized Recommendations based on a user's shelved/rated books and explicit preferences.
+ * Transparent explanation generated for every recommendation.
+ */
 export function getPersonalizedRecommendations(
-  shelvedSlugs: string[],
-  limit = 8
+  shelvedSlugs: string[] = [],
+  limit = 8,
+  preferences?: UserPreferencesInput
 ): RecommendationResponse {
-  // If user has not shelved any books, return curated cold-start landmark picks
-  if (!shelvedSlugs || shelvedSlugs.length === 0) {
-    // Pick 1 iconic landmark book from distinct genres
+  const hasShelved = Array.isArray(shelvedSlugs) && shelvedSlugs.length > 0;
+  const hasPreferences = Boolean(
+    preferences &&
+      ((preferences.genres && preferences.genres.length > 0) ||
+        (preferences.interests && preferences.interests.length > 0))
+  );
+
+  // If neither shelved books nor preferences are present, return curated cold-start landmark picks
+  if (!hasShelved && !hasPreferences) {
     const coldStartSlugs = [
       "the-hound-of-the-baskervilles",
       "the-time-machine",
@@ -117,32 +134,33 @@ export function getPersonalizedRecommendations(
     return {
       isColdStart: true,
       explanationNote:
-        "Curated starter landmarks across 10 genres. Add books to your private shelf or rate them to unlock your personalized recommendation engine.",
+        "Curated starter landmarks across 10 genres. Complete your reading preferences or add books to your private shelf to unlock tailored recommendations.",
       recommendations: coldStartBooks.slice(0, limit),
     };
   }
 
-  const shelvedSet = new Set(shelvedSlugs);
-
-  // Collect user's shelved books metadata
+  const shelvedSet = new Set(shelvedSlugs || []);
   const userBooks = ALL_CATALOG_BOOKS.filter((b) => shelvedSet.has(b.slug));
-
-  // If none found in catalog, fallback to cold start
-  if (userBooks.length === 0) {
-    return getPersonalizedRecommendations([], limit);
-  }
 
   // Build taste profile distributions
   const preferredGenres: Record<string, number> = {};
   const preferredSubjects: Record<string, number> = {};
   const preferredAuthors: Record<string, number> = {};
+  const explicitGenres = new Set(preferences?.genres || []);
+  const explicitInterests = (preferences?.interests || []).map((i) => i.toLowerCase().trim());
 
+  // 1. Explicit preferences give high primary weighting
+  for (const g of explicitGenres) {
+    preferredGenres[g] = (preferredGenres[g] || 0) + 3.5;
+  }
+
+  // 2. Shelved books enrich the profile
   for (const b of userBooks) {
-    preferredGenres[b.genreSlug] = (preferredGenres[b.genreSlug] || 0) + 1;
-    preferredAuthors[b.authorSlug] = (preferredAuthors[b.authorSlug] || 0) + 2;
+    preferredGenres[b.genreSlug] = (preferredGenres[b.genreSlug] || 0) + 1.2;
+    preferredAuthors[b.authorSlug] = (preferredAuthors[b.authorSlug] || 0) + 2.0;
     for (const subj of b.subjects) {
       const sKey = subj.toLowerCase().trim();
-      preferredSubjects[sKey] = (preferredSubjects[sKey] || 0) + 1;
+      preferredSubjects[sKey] = (preferredSubjects[sKey] || 0) + 1.0;
     }
   }
 
@@ -153,19 +171,45 @@ export function getPersonalizedRecommendations(
     if (shelvedSet.has(candidate.slug)) continue; // Filter out already shelved books
 
     let score = 0;
+    let explicitInterestMatch: string | null = null;
     const matchingSubjects: string[] = [];
 
-    // Genre affinity
-    if (preferredGenres[candidate.genreSlug]) {
-      score += 0.35 * preferredGenres[candidate.genreSlug];
+    // Explicit Genre affinity
+    const isExplicitGenre = explicitGenres.has(candidate.genreSlug);
+    if (isExplicitGenre) {
+      score += 2.2;
+    } else if (preferredGenres[candidate.genreSlug]) {
+      score += 0.4 * preferredGenres[candidate.genreSlug];
+    }
+
+    // Explicit Interest keywords affinity (against title, subjects, curator note)
+    const bookSearchText = [
+      candidate.title,
+      candidate.curatorNote,
+      candidate.description,
+      ...candidate.subjects,
+    ].join(' ').toLowerCase();
+
+    for (const rawInterest of explicitInterests) {
+      const interestTokens = rawInterest
+        .split(/[\s,&/-]+/)
+        .filter((tok) => tok.length > 3 && !['with', 'that', 'from'].includes(tok));
+      
+      const tokenMatches = interestTokens.filter((tok) => bookSearchText.includes(tok));
+      if (tokenMatches.length >= 1) {
+        score += 1.4 * (tokenMatches.length / interestTokens.length);
+        if (!explicitInterestMatch) {
+          explicitInterestMatch = rawInterest;
+        }
+      }
     }
 
     // Author affinity
     if (preferredAuthors[candidate.authorSlug]) {
-      score += 0.45 * preferredAuthors[candidate.authorSlug];
+      score += 0.5 * preferredAuthors[candidate.authorSlug];
     }
 
-    // Subject affinity
+    // Subject affinity from shelves
     for (const s of candidate.subjects) {
       const sKey = s.toLowerCase().trim();
       if (preferredSubjects[sKey]) {
@@ -174,7 +218,7 @@ export function getPersonalizedRecommendations(
       }
     }
 
-    // Direct similarity connection to one of the user's shelved books
+    // Direct pairwise similarity connection to one of user's shelved books
     let bestSourceBook: CatalogBook | null = null;
     let highestPairSim = 0;
 
@@ -191,16 +235,24 @@ export function getPersonalizedRecommendations(
       score += highestPairSim * 1.5;
     }
 
-    if (score > 0.2) {
+    if (score > 0.35) {
       let reason = "";
-      if (bestSourceBook) {
+      if (explicitInterestMatch) {
+        const titleCaseInterest = explicitInterestMatch
+          .split(' ')
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
+        reason = `Matches your interest in "${titleCaseInterest}"`;
+      } else if (isExplicitGenre) {
+        reason = `Selected from your chosen genre: ${candidate.genreBadge}`;
+      } else if (bestSourceBook) {
         reason = `Because you shelved "${bestSourceBook.title}"`;
       } else if (preferredAuthors[candidate.authorSlug]) {
         reason = `Author match: more by ${candidate.authorName}`;
       } else if (matchingSubjects.length >= 2) {
         reason = `Strong match for your interest in ${matchingSubjects.slice(0, 2).join(' & ')}`;
       } else {
-        reason = `Top affinity for your ${candidate.genreBadge} shelf activity`;
+        reason = `Recommended for your ${candidate.genreBadge} taste profile`;
       }
 
       candidateScores.push({
@@ -214,7 +266,7 @@ export function getPersonalizedRecommendations(
         genreSlug: candidate.genreSlug,
         audienceLevel: candidate.audienceLevel,
         score,
-        matchPercentage: Math.min(99, Math.max(65, Math.round(score * 12 + 60))),
+        matchPercentage: Math.min(99, Math.max(72, Math.round(score * 12 + 65))),
         reason,
         sharedSubjects: matchingSubjects.slice(0, 3),
         sourceShelvedTitle: bestSourceBook?.title,
@@ -227,11 +279,30 @@ export function getPersonalizedRecommendations(
 
   const topRecommendations = candidateScores.slice(0, limit);
 
+  // Craft explanation note
+  let explanationNote = "";
+  if (hasPreferences && preferences?.genres && preferences.genres.length > 0) {
+    const genreNames = preferences.genres
+      .map((gSlug) => {
+        const found = ALL_CATALOG_BOOKS.find((b) => b.genreSlug === gSlug);
+        return found ? found.genreBadge : gSlug;
+      })
+      .slice(0, 3);
+
+    explanationNote = `Curated for your selected preferences & interests (${genreNames.join(', ')})${
+      hasShelved ? ` combined with ${userBooks.length} shelved titles` : ''
+    }.`;
+  } else if (hasShelved) {
+    explanationNote = `Personalized for you based on ${userBooks.length} book${
+      userBooks.length > 1 ? "s" : ""
+    } on your private shelves.`;
+  } else {
+    explanationNote = `Curated library recommendations based on your preferences.`;
+  }
+
   return {
     isColdStart: false,
-    explanationNote: `Personalized for you based on ${userBooks.length} book${
-      userBooks.length > 1 ? "s" : ""
-    } on your private shelves.`,
+    explanationNote,
     recommendations: topRecommendations,
   };
 }

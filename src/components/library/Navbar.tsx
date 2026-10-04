@@ -22,6 +22,7 @@ import MyShelfModal from './MyShelfModal';
 
 interface NavbarProps {
   onOpenAuth?: () => void;
+  onOpenPreferences?: () => void;
   savedCount: number;
 }
 
@@ -34,7 +35,7 @@ const TRENDING_TOPICS = [
   { label: 'Dystopian Sci-Fi', q: 'H.G. Wells' },
 ];
 
-export function Navbar({ onOpenAuth, savedCount }: NavbarProps) {
+export function Navbar({ onOpenAuth, onOpenPreferences, savedCount }: NavbarProps) {
   const router = useRouter();
   const [navQuery, setNavQuery] = useState('');
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -375,6 +376,19 @@ export function Navbar({ onOpenAuth, savedCount }: NavbarProps) {
             <span className="hidden sm:inline font-medium">My Shelf:</span>
             <span className="font-bold text-stone-900">{shelfCount}</span>
           </button>
+
+          {/* Preferences / Taste Profile */}
+          {onOpenPreferences && (
+            <button
+              type="button"
+              onClick={onOpenPreferences}
+              className="flex items-center gap-1.5 text-xs text-stone-700 px-3 py-1.5 rounded-lg border border-[#E5DDD0] bg-white hover:border-amber-600 hover:bg-amber-50/60 transition-all cursor-pointer shadow-xs"
+              title="Customize My Reading Preferences & Interests"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+              <span className="hidden md:inline font-medium">Interests</span>
+            </button>
+          )}
 
           {user ? (
             /* Logged-In User Profile & Sign Out */
