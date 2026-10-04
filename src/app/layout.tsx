@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Pardante | Community Library & Reading Portal',
+  title: 'Padhante | Community Library & Reading Portal',
   description: 'Free public-domain literature from Project Gutenberg & Open Library, curated reading shelves, and surveillance-free private reading tracker.',
   icons: {
     icon: [
