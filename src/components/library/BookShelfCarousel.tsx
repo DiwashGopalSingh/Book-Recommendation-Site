@@ -43,16 +43,22 @@ export const BookCard = ({
   <div className="group relative flex h-[340px] w-full flex-col overflow-hidden rounded-xl border border-[#E5DDD0] bg-white shadow-xs transition-all duration-300 hover:shadow-md hover:border-teal-600">
     {/* Card Image Container */}
     <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-xl bg-stone-100">
-      <Image
-        alt={book.title}
-        src={book.cover}
-        fill
-        sizes="(max-width: 768px) 180px, 220px"
-        className="object-cover transition-transform duration-300 group-hover:scale-105"
-      />
+      <Link
+        href={`/book/${book.id.replace(/_/g, '-')}`}
+        className="block absolute inset-0 cursor-pointer z-10"
+        aria-label={`Open ${book.title}`}
+      >
+        <Image
+          alt={book.title}
+          src={book.cover}
+          fill
+          sizes="(max-width: 768px) 180px, 220px"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+        />
 
-      {/* Spine highlight */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-white/30 via-black/20 to-transparent z-10" />
+        {/* Spine highlight */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-white/30 via-black/20 to-transparent z-10" />
+      </Link>
 
       {/* Bookmark / Shelf Action Button (Top Right) */}
       <button
@@ -74,7 +80,7 @@ export const BookCard = ({
 
       {/* Audience / Curation Badge (Top Left) */}
       {book.badge && (
-        <span className="absolute top-2 left-2 z-20 rounded-md bg-white/95 px-2 py-0.5 font-bold text-teal-800 border border-teal-700/20 text-[10px] uppercase tracking-wider backdrop-blur-xs shadow-xs">
+        <span className="pointer-events-none absolute top-2 left-2 z-20 rounded-md bg-white/95 px-2 py-0.5 font-bold text-teal-800 border border-teal-700/20 text-[10px] uppercase tracking-wider backdrop-blur-xs shadow-xs">
           {book.badge}
         </span>
       )}

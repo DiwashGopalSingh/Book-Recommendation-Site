@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ChevronLeft,
@@ -257,6 +258,7 @@ export function CoverflowHero({
   onBookShelfToggle,
   savedBooks = [],
 }: CoverflowHeroProps) {
+  const router = useRouter();
   const [activeIndex, setActiveIndex] = useState(2); // Start on Dracula / Hound
   const [activeShelf, setActiveShelf] = useState<{ [bookId: string]: string }>({});
 
@@ -431,9 +433,14 @@ export function CoverflowHero({
                       e.stopPropagation();
                       return;
                     }
-                    setActiveIndex(index);
+                    if (index === activeIndex) {
+                      router.push(`/book/${book.id}`);
+                    } else {
+                      setActiveIndex(index);
+                    }
                   }}
-                  className="absolute will-change-transform"
+                  title={index === activeIndex ? `Open ${book.title}` : `View ${book.title}`}
+                  className="absolute will-change-transform cursor-pointer"
                   style={{
                     zIndex,
                   }}
