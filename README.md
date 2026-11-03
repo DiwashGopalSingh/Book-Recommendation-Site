@@ -54,7 +54,6 @@ Ensure you have [Node.js](https://nodejs.org/) (v18 or higher) installed.
 - `npm run lint`: Runs ESLint checks.
 - `npm run db:migrate`: Executes database migrations.
 - `npm run db:seed`: Seeds local database with catalog books.
-- `npm run db:ingest`: Ingests catalog records.
 
 ## 📄 License
 
