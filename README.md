@@ -262,21 +262,7 @@ Padhante is an early-stage prototype (v0.1.0). The discovery, search, and UI exp
 - **Tests:** there is no automated test suite yet.
 - **Setup scripts:** the three `fetch-*covers.js` scripts in the repository root are one-off utilities and are not part of the normal setup.
 
-## Roadmap
 
-- [ ] Replace PGlite with hosted Postgres for production
-- [ ] Replace the `localStorage` demo auth with server-side authentication from a maintained library (for example Auth.js or Better Auth), backed by the `users` table, with hashed passwords, `HttpOnly` session cookies, and per-user ownership checks on all shelf and rating data
-- [ ] Move shelves, ratings and preferences from the browser to the database so they follow the user across devices
-- [ ] Add database constraints for ratings, progress, and age-ceiling rules (the schema already stores ratings and progress; confirm they are fully wired into the UI)
-- [ ] Add session, password-reset and email-verification support
-- [ ] Add foreign keys for `users.managed_by` and `curated_lists.created_by`
-- [ ] Personalized recommendations based on a user's ratings and shelves
-- [ ] Integrate an open catalog source (for example Open Library) instead of a fixed seed
-- [ ] Add `.env.example` and a documented list of environment variables
-- [ ] Add unit and integration tests
-- [ ] Add a CI workflow (lint, type-check, build) with GitHub Actions
-- [ ] Move one-off cover scripts into `scripts/` and document them
-- [ ] Add accessibility and performance audits
 
 ## Contributing
 
