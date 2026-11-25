@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { loginRedirectPath } from './redirect';
 import { AuthTabs } from '@/components/auth';
 import { signInUser, signUpUser, checkIsAuthenticated, getCurrentUser, logoutUser } from '@/lib/auth';
 import { ArrowLeft, BookOpen, ShieldCheck, Sparkles, Check, LogOut, ArrowRight, UserCheck } from 'lucide-react';
@@ -10,7 +11,7 @@ import { ArrowLeft, BookOpen, ShieldCheck, Sparkles, Check, LogOut, ArrowRight, 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTarget = searchParams.get('redirect') || '/';
+  const redirectTarget = loginRedirectPath(searchParams.get('redirect'));
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
