@@ -457,7 +457,6 @@ module.exports = [
     coverId: "8232123",
     description: "Descartes applies radical doubt to all sensory experience, arriving at the bedrock certainty: Cogito, ergo sum ('I think, therefore I am').",
     curatorNote: "The starting point of modern epistemology and mind-body philosophical inquiry.",
-    gutenbergId: "59",
     openLibraryWorkId: "OL103162W",
     subjects: ["Philosophy & Ethics", "Cartesian Doubt", "Cogito Ergo Sum", "Dualism"]
   },

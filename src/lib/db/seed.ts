@@ -1,6 +1,5 @@
 import {
-  db,
-  client,
+  getDatabase,
   works,
   editions,
   authors,
@@ -23,7 +22,7 @@ function slugifyKey(text: string): string {
 }
 
 export async function runSeed() {
-  await client.waitReady;
+  const db = await getDatabase();
   console.log("\n=======================================================");
   console.log(" Seeding 500 Authentic Books across 10 Distinct Genres ");
   console.log("=======================================================\n");

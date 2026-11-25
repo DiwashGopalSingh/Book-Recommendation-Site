@@ -34,7 +34,7 @@ function stripArticles(title: string): string {
 }
 
 function cleanString(str: string): string {
-  return str.toLowerCase().replace(/[^a-z0-9\s]/g, " ").trim();
+  return str.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").trim();
 }
 
 export async function searchCatalog(filters: SearchFilters): Promise<{
@@ -53,6 +53,7 @@ export async function searchCatalog(filters: SearchFilters): Promise<{
 
   const rawQuery = query.trim().toLowerCase();
   const cleanQ = cleanString(rawQuery);
+  if (rawQuery && !cleanQ) return { books: [], total: 0, recommendations: [] };
   const isSingleLetter = rawQuery.length === 1 && /[a-z0-9]/.test(rawQuery);
 
   let candidates: { book: CatalogBook; score: number }[] = [];

@@ -529,7 +529,7 @@ module.exports = [
     coverId: "8232372",
     description: "Gentle coachman's son Diamond is visited by the majestic, wind-swept North Wind, taking flight across London nights and glimpsing eternal paradise.",
     curatorNote: "A deeply spiritual, poetic fairy tale on childhood innocence, death, and comfort.",
-    gutenbergId: "244",
+    gutenbergId: "225",
     openLibraryWorkId: "OL10589W",
     subjects: ["Children's & YA", "North Wind", "Diamond", "Spiritual Fairy Tale", "London Nights"]
   },

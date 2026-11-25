@@ -33,7 +33,7 @@ export default function BookDetailClientActions({ workId, workSlug }: Props) {
 
   const handleShelfChange = async (newStatus: string) => {
     const updatedStatus = status === newStatus ? null : newStatus;
-    setStatus(updatedStatus);
+
     setLoading(true);
 
     try {
@@ -48,20 +48,20 @@ export default function BookDetailClientActions({ workId, workSlug }: Props) {
         }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        setSavedMessage(
-          updatedStatus ? `Added to "${formatShelfName(updatedStatus)}"` : "Removed from shelves"
+      if (!res.ok) throw new Error("Shelf update failed");
+      const data = await res.json();
+      setStatus(updatedStatus);
+      setSavedMessage(
+        updatedStatus ? `Added to "${formatShelfName(updatedStatus)}"` : "Removed from shelves"
+      );
+      setTimeout(() => setSavedMessage(null), 3000);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("shelf-updated", { detail: { count: data.totalShelved } })
         );
-        setTimeout(() => setSavedMessage(null), 3000);
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("shelf-updated", { detail: { count: data.totalShelved } })
-          );
-        }
       }
     } catch (err) {
-      console.error("Failed to update shelf:", err);
+      setSavedMessage("Could not save your shelf change. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -69,10 +69,10 @@ export default function BookDetailClientActions({ workId, workSlug }: Props) {
 
   const handleRating = async (val: number) => {
     const newRating = rating === val ? null : val;
-    setRating(newRating);
+
 
     try {
-      await fetch("/api/shelves", {
+      const res = await fetch("/api/shelves", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -82,11 +82,13 @@ export default function BookDetailClientActions({ workId, workSlug }: Props) {
           rating: newRating,
         }),
       });
+      if (!res.ok) throw new Error("Rating update failed");
+      setRating(newRating);
       if (!status) setStatus("read");
-      setSavedMessage(`Rated ${newRating} stars`);
+      setSavedMessage(newRating ? `Rated ${newRating} stars` : "Rating cleared");
       setTimeout(() => setSavedMessage(null), 2500);
     } catch (err) {
-      console.error("Failed to update rating:", err);
+      setSavedMessage("Could not save your rating. Please try again.");
     }
   };
 

@@ -613,7 +613,6 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Mystery, Detective & Crime",
     "genreSlug": "mystery-crime",
     "genreBadge": "Mystery & Crime",
-    "gutenbergId": "2148",
     "openLibraryWorkId": "OL41060W"
   },
   {
@@ -638,7 +637,6 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Mystery, Detective & Crime",
     "genreSlug": "mystery-crime",
     "genreBadge": "Mystery & Crime",
-    "gutenbergId": "2149",
     "openLibraryWorkId": "OL41061W"
   },
   {
@@ -663,7 +661,6 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Mystery, Detective & Crime",
     "genreSlug": "mystery-crime",
     "genreBadge": "Mystery & Crime",
-    "gutenbergId": "2150",
     "openLibraryWorkId": "OL41062W"
   },
   {
@@ -763,7 +760,7 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Mystery, Detective & Crime",
     "genreSlug": "mystery-crime",
     "genreBadge": "Mystery & Crime",
-    "gutenbergId": "4023",
+    "gutenbergId": "34758",
     "openLibraryWorkId": "OL132927W"
   },
   {
@@ -1088,7 +1085,7 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Mystery, Detective & Crime",
     "genreSlug": "mystery-crime",
     "genreBadge": "Mystery & Crime",
-    "gutenbergId": "14838",
+    "gutenbergId": "18761",
     "openLibraryWorkId": "OL32802W"
   },
   {
@@ -1663,7 +1660,7 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Science Fiction & Speculative Fiction",
     "genreSlug": "sci-fi",
     "genreBadge": "Sci-Fi",
-    "gutenbergId": "83",
+    "gutenbergId": "8986",
     "openLibraryWorkId": "OL10993W"
   },
   {
@@ -1688,7 +1685,7 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Science Fiction & Speculative Fiction",
     "genreSlug": "sci-fi",
     "genreBadge": "Sci-Fi",
-    "gutenbergId": "83",
+    "gutenbergId": "16457",
     "openLibraryWorkId": "OL10994W"
   },
   {
@@ -1963,7 +1960,7 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Science Fiction & Speculative Fiction",
     "genreSlug": "sci-fi",
     "genreBadge": "Sci-Fi",
-    "gutenbergId": "78",
+    "gutenbergId": "68",
     "openLibraryWorkId": "OL59283W"
   },
   {
@@ -3413,7 +3410,6 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Philosophy, Ethics & Wisdom",
     "genreSlug": "philosophy",
     "genreBadge": "Philosophy",
-    "gutenbergId": "59",
     "openLibraryWorkId": "OL103162W"
   },
   {
@@ -4347,7 +4343,7 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Epic Adventure & Sea Voyages",
     "genreSlug": "adventure",
     "genreBadge": "Adventure",
-    "gutenbergId": "1064",
+    "gutenbergId": "965",
     "openLibraryWorkId": "OL15204W"
   },
   {
@@ -5030,7 +5026,7 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Epic Adventure & Sea Voyages",
     "genreSlug": "adventure",
     "genreBadge": "Adventure",
-    "gutenbergId": "1028",
+    "gutenbergId": "8987",
     "openLibraryWorkId": "OL11002W"
   },
   {
@@ -5282,7 +5278,6 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Gothic, Horror & Supernatural Chills",
     "genreSlug": "gothic-horror",
     "genreBadge": "Gothic & Horror",
-    "gutenbergId": "2148",
     "openLibraryWorkId": "OL41072W"
   },
   {
@@ -5307,7 +5302,6 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Gothic, Horror & Supernatural Chills",
     "genreSlug": "gothic-horror",
     "genreBadge": "Gothic & Horror",
-    "gutenbergId": "2149",
     "openLibraryWorkId": "OL41073W"
   },
   {
@@ -5332,7 +5326,6 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Gothic, Horror & Supernatural Chills",
     "genreSlug": "gothic-horror",
     "genreBadge": "Gothic & Horror",
-    "gutenbergId": "2150",
     "openLibraryWorkId": "OL41074W"
   },
   {
@@ -8958,7 +8951,6 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Historical Chronicles & Memoirs",
     "genreSlug": "history-biography",
     "genreBadge": "History & Life",
-    "gutenbergId": "2445",
     "openLibraryWorkId": "OL10733W"
   },
   {
@@ -9949,7 +9941,7 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Children's & Young Adult Classics",
     "genreSlug": "childrens-ya",
     "genreBadge": "Children's & YA",
-    "gutenbergId": "244",
+    "gutenbergId": "225",
     "openLibraryWorkId": "OL10589W"
   },
   {
@@ -11357,7 +11349,6 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Poetry, Epics & Classical Verse",
     "genreSlug": "poetry-verse",
     "genreBadge": "Poetry & Epics",
-    "gutenbergId": "4023",
     "openLibraryWorkId": "OL10645W"
   },
   {
@@ -11905,7 +11896,6 @@ export const ALL_500_BOOKS: CatalogBook[] = [
     "genre": "Wit, Satire & Timeless Comedy",
     "genreSlug": "wit-satire",
     "genreBadge": "Wit & Satire",
-    "gutenbergId": "78",
     "openLibraryWorkId": "OL53903W"
   },
   {

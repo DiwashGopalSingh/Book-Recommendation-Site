@@ -1,36 +1,17 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+import { sessionReader } from './lib/session';
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export async function middleware(request: NextRequest) {
+  if (await sessionReader(request)) return NextResponse.next();
 
-  // 1. Always allow Next.js internals, static files, api routes, home page, and login page
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api') ||
-    pathname.startsWith('/books') ||
-    pathname.includes('.') ||
-    pathname === '/' ||
-    pathname === '/login'
-  ) {
-    return NextResponse.next();
-  }
-
-  // 2. Check for the authentication session cookie (cl_session)
-  const authCookie = request.cookies.get('cl_session');
-
-  // 3. If no valid session cookie, redirect to the login page
-  if (!authCookie || !authCookie.value) {
-    const loginUrl = new URL('/login', request.url);
-    if (pathname !== '/') {
-      loginUrl.searchParams.set('redirect', pathname);
-    }
-    return NextResponse.redirect(loginUrl);
-  }
-
-  return NextResponse.next();
+  const loginUrl = new URL('/login', request.url);
+  loginUrl.searchParams.set('redirect', request.nextUrl.pathname + request.nextUrl.search);
+  const response = NextResponse.redirect(loginUrl);
+  response.headers.set('Cache-Control', 'private, no-store');
+  return response;
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  runtime: 'nodejs',
+  matcher: ['/book/:path*', '/search/:path*'],
 };

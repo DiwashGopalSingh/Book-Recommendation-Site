@@ -5,12 +5,10 @@ import { useRouter } from 'next/navigation';
 import { Navbar, CoverflowHero, ShelfSection, ALL_GENRE_SHELVES, PersonalizedRecommendationsSection } from '@/components/library';
 import { AuthTabs, PreferencesOnboardingModal } from '@/components/auth';
 import {
-  checkIsAuthenticated,
-  clearStaleSession,
+  loadCurrentUser,
   getCurrentUser,
   signInUser,
   signUpUser,
-  logoutUser,
   UserProfile,
   UserPreferences,
 } from '@/lib/auth';
@@ -45,16 +43,10 @@ export default function CommunityLibraryPage() {
 
   // Check authentication on mount - opens with Login section unless actively signed in
   useEffect(() => {
-    const hasActiveSession =
-      typeof window !== 'undefined' &&
-      sessionStorage.getItem('library_active_session') === 'true';
-
-    if (hasActiveSession && checkIsAuthenticated()) {
-      setCurrentUser(getCurrentUser());
-    } else {
-      setCurrentUser(null);
-    }
-    setAuthChecked(true);
+    let active = true;
+    loadCurrentUser().then(user => { if (active) setCurrentUser(user); })
+      .catch(() => { if (active) setCurrentUser(null); })
+      .finally(() => { if (active) setAuthChecked(true); });
 
     const handleAuthChanged = (e: Event) => {
       const customEvt = e as CustomEvent;
@@ -66,11 +58,13 @@ export default function CommunityLibraryPage() {
     };
 
     window.addEventListener('auth-changed', handleAuthChanged);
-    return () => window.removeEventListener('auth-changed', handleAuthChanged);
+    return () => { active = false; window.removeEventListener('auth-changed', handleAuthChanged); };
   }, []);
 
   // Load real saved shelves on mount
   useEffect(() => {
+    setSavedBooks([]);
+    if (!currentUser) return;
     let isMounted = true;
     const fetchShelvedBooks = async () => {
       try {
@@ -78,11 +72,7 @@ export default function CommunityLibraryPage() {
         if (res.ok) {
           const data = await res.json();
           if (isMounted && Array.isArray(data.shelves)) {
-            const identifiers = data.shelves.flatMap((s: { work_id: string; slug: string }) => [
-              s.work_id,
-              s.slug,
-            ]);
-            setSavedBooks(Array.from(new Set(identifiers)));
+            setSavedBooks(data.shelves.map((book: { slug: string }) => book.slug));
           }
         }
       } catch (err) {
@@ -101,7 +91,7 @@ export default function CommunityLibraryPage() {
       isMounted = false;
       window.removeEventListener('shelf-updated', handleShelfUpdated);
     };
-  }, []);
+  }, [currentUser?.email]);
 
   const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
@@ -123,17 +113,14 @@ export default function CommunityLibraryPage() {
     }
   };
 
-  const handleLoginSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setAuthLoading(true);
     setAuthError(null);
 
     if (isSignUp) {
-      const result = signUpUser(formData.name, formData.email, formData.password);
+      const result = await signUpUser(formData.name, formData.email, formData.password);
       if (result.success && result.user) {
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('library_active_session', 'true');
-        }
         // Save user and immediately display Preferences & Interests Questionnaire
         setCurrentUser(result.user);
         setIsPreferencesModalOpen(true);
@@ -144,11 +131,8 @@ export default function CommunityLibraryPage() {
       }
       setAuthLoading(false);
     } else {
-      const result = signInUser(formData.email, formData.password);
+      const result = await signInUser(formData.email, formData.password);
       if (result.success && result.user) {
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('library_active_session', 'true');
-        }
         setStatusMessage(`Welcome back, ${result.user.name}! Opening library...`);
         setCurrentUser(result.user);
         setTimeout(() => setStatusMessage(null), 3000);
@@ -163,45 +147,20 @@ export default function CommunityLibraryPage() {
     const isCurrentlySaved = savedBooks.includes(bookId);
     const newStatus = isCurrentlySaved ? 'remove' : 'want_to_read';
 
-    // Optimistic UI update
-    setSavedBooks((prev) =>
-      isCurrentlySaved ? prev.filter((id) => id !== bookId) : [...prev, bookId]
-    );
-
-    setStatusMessage(
-      isCurrentlySaved
-        ? 'Book removed from your private shelf'
-        : 'Book added to your "Want to Read" shelf'
-    );
-    setTimeout(() => setStatusMessage(null), 3000);
-
     try {
       const res = await fetch('/api/shelves', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug: bookId, status: newStatus }),
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(
-            new CustomEvent('shelf-updated', { detail: { count: data.totalShelved } })
-          );
-        }
-      } else {
-        // Revert on failure
-        setSavedBooks((prev) =>
-          isCurrentlySaved ? [...prev, bookId] : prev.filter((id) => id !== bookId)
-        );
-      }
-    } catch (err) {
-      console.error('Error toggling shelf item:', err);
-      // Revert on network failure
-      setSavedBooks((prev) =>
-        isCurrentlySaved ? [...prev, bookId] : prev.filter((id) => id !== bookId)
-      );
+      if (!res.ok) throw new Error('Shelf update failed');
+      const data = await res.json();
+      window.dispatchEvent(new CustomEvent('shelf-updated', { detail: { count: data.totalShelved } }));
+      setStatusMessage(isCurrentlySaved ? 'Book removed from your private shelf' : 'Book added to your "Want to Read" shelf');
+    } catch {
+      setStatusMessage('Could not save your shelf change. Please try again.');
     }
+    setTimeout(() => setStatusMessage(null), 3000);
   };
 
   // SSR loading skeleton

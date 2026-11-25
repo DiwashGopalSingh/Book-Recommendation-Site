@@ -99,6 +99,16 @@ function SearchPageContent() {
     };
   }, [debouncedQuery, audience, subject]);
 
+  useEffect(() => {
+    let active = true;
+    fetch('/api/shelves', { cache: 'no-store' }).then(async response => {
+      if (!response.ok) return;
+      const data = await response.json();
+      if (active) setSavedBooks(data.shelves.map((book: { slug: string }) => book.slug));
+    }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+
   const handleShelfToggle = async (bookSlug: string, bookTitle: string) => {
     const isSaved = savedBooks.includes(bookSlug);
     const newSaved = isSaved
@@ -108,7 +118,7 @@ function SearchPageContent() {
     setSavedBooks(newSaved);
 
     try {
-      await fetch("/api/shelves", {
+      const response = await fetch("/api/shelves", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -117,6 +127,7 @@ function SearchPageContent() {
         }),
       });
 
+      if (!response.ok) throw new Error("Shelf update failed");
       setToastMessage(
         isSaved
           ? `Removed "${bookTitle}" from your shelves`
@@ -124,7 +135,8 @@ function SearchPageContent() {
       );
       setTimeout(() => setToastMessage(null), 3000);
     } catch (err) {
-      console.error("Shelf update error:", err);
+      setSavedBooks(savedBooks);
+      setToastMessage("Could not update your shelf. Check that you are signed in.");
     }
   };
 

@@ -177,7 +177,6 @@ module.exports = [
     coverId: "8232445",
     description: "Simon Wheeler cornering an unwilling listener in Angel's Camp to recount Jim Smiley and his frog Dan'l Webster, filled with quail-shot by a stranger.",
     curatorNote: "The tall tale that first launched Mark Twain's national fame as an American humorist.",
-    gutenbergId: "78",
     openLibraryWorkId: "OL53903W",
     subjects: ["Wit & Satire", "Jumping Frog", "Angels Camp", "Tall Tale", "Frontier Humor"]
   },

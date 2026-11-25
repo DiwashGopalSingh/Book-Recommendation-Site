@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSimilarBooks, getPersonalizedRecommendations } from "@/lib/recommend/engine";
-import { db, client, userBooks, users, works } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { getAllShelvedBooks } from "@/lib/catalog/shelfStore";
+import { sessionReader } from "@/lib/session";
+
+async function recommendationShelf(req: NextRequest, guestSlugs: string[] = []) {
+  const reader = await sessionReader(req);
+  if (!reader) return guestSlugs;
+  return (await getAllShelvedBooks(reader.id)).map(book => book.slug);
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -18,31 +24,9 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Otherwise, fetch shelved books for the community member or guest
-    let shelvedSlugs: string[] = [];
-    try {
-      await client.waitReady;
-      const guestUser = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.displayName, "Community Reader"))
-        .limit(1);
-
-      if (guestUser.length > 0) {
-        const rows = await db
-          .select({ slug: works.slug })
-          .from(userBooks)
-          .innerJoin(works, eq(userBooks.workId, works.id))
-          .where(eq(userBooks.userId, guestUser[0].id));
-
-        shelvedSlugs = rows.map((r) => r.slug);
-      }
-    } catch (dbErr) {
-      console.warn("Recommendations DB query fallback:", dbErr);
-    }
-
+    const shelvedSlugs = await recommendationShelf(req);
     const reco = getPersonalizedRecommendations(shelvedSlugs, limit);
-    return NextResponse.json(reco);
+    return NextResponse.json(reco, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     console.error("GET /api/recommendations error:", error);
     return NextResponse.json(
@@ -55,10 +39,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { shelvedSlugs = [], limit = 8, preferences } = body;
+    const { limit = 8, preferences } = body;
+    const shelvedSlugs = await recommendationShelf(req, body.shelvedSlugs);
 
     const reco = getPersonalizedRecommendations(shelvedSlugs, limit, preferences);
-    return NextResponse.json(reco);
+    return NextResponse.json(reco, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     console.error("POST /api/recommendations error:", error);
     return NextResponse.json(
@@ -67,3 +52,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+

@@ -94,7 +94,6 @@ module.exports = [
     coverId: "8232195",
     description: "A prisoner of the Spanish Inquisition in Toledo endures psychological torture in pitch-black subterranean cells, surrounded by pits and a descending razor-sharp scythe.",
     curatorNote: "A tour de force of sensory deprivation, psychological claustrophobia, and survival.",
-    gutenbergId: "2148",
     openLibraryWorkId: "OL41072W",
     subjects: ["Gothic & Horror", "Spanish Inquisition", "Claustrophobia", "Torture Chamber"]
   },
@@ -108,7 +107,6 @@ module.exports = [
     coverId: "8232196",
     description: "An unhinged narrator insists upon his sanity while recounting how he murdered an old man for his 'vulture eye', only for his guilt to beat like a muffled drum.",
     curatorNote: "A psychological masterclass in unreliable narration and auditory hallucinations of guilt.",
-    gutenbergId: "2149",
     openLibraryWorkId: "OL41073W",
     subjects: ["Gothic & Horror", "Psychological Horror", "Unreliable Narrator", "Auditory Guilt"]
   },
@@ -122,7 +120,6 @@ module.exports = [
     coverId: "8232197",
     description: "Alcoholic deterioration drives a man to maim his beloved cat Pluto and murder his wife, until the walled-up corpse reveals itself to investigating police.",
     curatorNote: "Unsparing study of self-destruction and the perverse spirit of malice.",
-    gutenbergId: "2150",
     openLibraryWorkId: "OL41074W",
     subjects: ["Gothic & Horror", "Psychological Decay", "Perversity", "Walled-In Corpse"]
   },

@@ -34,11 +34,11 @@ const cache = new Map<string, ReaderResponse>();
 
 function cleanGutenbergText(raw: string): string {
   // Strip start boilerplate
-  const startMatch = raw.match(/\*\*\* START OF TH[E|IS] PROJECT GUTENBERG[^\n\r]*\*\*\*/i);
+  const startMatch = raw.match(/\*\*\* START OF TH(?:E|IS) PROJECT GUTENBERG[^\n\r]*\*\*\*/i);
   let text = startMatch ? raw.substring(startMatch.index! + startMatch[0].length) : raw;
 
   // Strip end boilerplate
-  const endMatch = text.match(/\*\*\* END OF TH[E|IS] PROJECT GUTENBERG[^\n\r]*\*\*\*/i);
+  const endMatch = text.match(/\*\*\* END OF TH(?:E|IS) PROJECT GUTENBERG[^\n\r]*\*\*\*/i);
   if (endMatch) {
     text = text.substring(0, endMatch.index);
   }
@@ -58,14 +58,14 @@ function parseTextIntoChapters(cleanText: string, bookTitle: string): ReaderChap
 
   const chapters: ReaderChapter[] = [];
 
-  if (rawParts.length > 2) {
+  if (rawParts.length > 1) {
     let chapterIndex = 1;
     for (let i = 0; i < rawParts.length; i++) {
       const part = rawParts[i].trim();
-      if (!part || part.length < 50) continue;
+      if (!part) continue;
 
       // Extract chapter heading
-      const lines = part.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const lines = part.split(/\r?\n/).map(l => l.trim());
       let title = `Chapter ${chapterIndex}`;
       let subtitle: string | undefined = undefined;
       let contentStartIndex = 0;
@@ -76,10 +76,7 @@ function parseTextIntoChapters(cleanText: string, bookTitle: string): ReaderChap
           title = firstLine.replace(/[\.\:\—\-]+$/, "").trim();
           contentStartIndex = 1;
 
-          if (lines.length > 1 && lines[1].length < 80 && !lines[1].endsWith(".")) {
-            subtitle = lines[1];
-            contentStartIndex = 2;
-          }
+
         }
       }
 
@@ -89,13 +86,13 @@ function parseTextIntoChapters(cleanText: string, bookTitle: string): ReaderChap
       const paragraphs = joinedBody
         .split(/\n{2,}/)
         .map(p => p.replace(/\r?\n/g, " ").replace(/\s{2,}/g, " ").trim())
-        .filter(p => p.length > 15 && !p.startsWith("Produced by ") && !p.startsWith("End of the Project Gutenberg"));
+        .filter(p => p.length > 0 && !p.startsWith("Produced by ") && !p.startsWith("End of the Project Gutenberg"));
 
       if (paragraphs.length > 0) {
         chapters.push({
           id: chapterIndex,
           title,
-          subtitle,
+
           paragraphs,
         });
         chapterIndex++;
@@ -108,7 +105,7 @@ function parseTextIntoChapters(cleanText: string, bookTitle: string): ReaderChap
     const allParagraphs = cleanText
       .split(/\r?\n\r?\n+/)
       .map(p => p.replace(/\r?\n/g, " ").replace(/\s{2,}/g, " ").trim())
-      .filter(p => p.length > 20);
+      .filter(Boolean);
 
     const paragraphsPerSection = 10;
     let sectionNum = 1;
@@ -129,49 +126,6 @@ function parseTextIntoChapters(cleanText: string, bookTitle: string): ReaderChap
   return chapters;
 }
 
-function buildCuratedFallback(book: any): ReaderChapter[] {
-  const title = book.title;
-  const author = book.authorName;
-  const desc = book.description || "A celebrated masterwork of world literature.";
-  const note = book.curatorNote || "Carefully preserved in the public domain for readers of all generations.";
-  const bio = book.authorBio || `${author} was an influential author whose literary achievements remain widely acclaimed.`;
-
-  return [
-    {
-      id: 1,
-      title: "Chapter I: The Overture & Narrative Premise",
-      subtitle: "Introduction to the World and Protagonists",
-      paragraphs: [
-        `It is among the enduring triumphs of world literature that ${title} commands our attention with immediate, atmospheric resonance. ${desc}`,
-        `Conceived during a transformative era in literary history, the narrative opens with a deliberate, watchful eye upon its characters and setting. Every turn of phrase carries the weight of acute observation, establishing both the physical landscape and the intricate psychological undercurrents that drive the drama forward.`,
-        `"To enter into this story," as the original preface observes, "is to step across the threshold of a world crafted with precision, where dialogue sparkles with wit and the silence between spoken words often conceals the greatest revelations."`,
-        `As our story commences, the principal dilemmas are unveiled with effortless mastery. The tensions between personal desire and societal duty, between individual virtue and human fallibility, begin to unfold in vivid, memorable prose.`,
-      ],
-    },
-    {
-      id: 2,
-      title: "Chapter II: Curatorial Perspectives & Thematic Depths",
-      subtitle: "Themes, Symbolism, and Moral Architecture",
-      paragraphs: [
-        note,
-        `Throughout the development of the plot, ${author} demonstrates an unrivaled comprehension of human temperament. The characters are never mere archetypes; they are living, contradictory figures whose convictions are tested against unforeseen obstacles and ethical dilemmas.`,
-        `Key motifs throughout the text reflect the dualities of light and shadow, honor and compromise, ambition and sacrifice. Through masterfully orchestrated encounters and interior reflections, the story examines whether character is shaped by destiny or forged through individual choice.`,
-        `The dialogue throughout this volume remains a benchmark of literary craftsmanship—each conversational exchange revealing subtle social ironies, concealed motives, and moments of profound human vulnerability.`,
-      ],
-    },
-    {
-      id: 3,
-      title: "Chapter III: The Author's Vision & Historical Context",
-      subtitle: `The Legacy of ${author}`,
-      paragraphs: [
-        bio,
-        `When first presented to contemporary readers, ${title} captured immediate fascination for its stylistic boldness and psychological acuity. Generations of scholars, critics, and avid readers have continued to find fresh insights in its pages.`,
-        `Today, as an open, unrestricted public domain treasure on our shelves, this work stands as a testament to the enduring power of narrative art. We invite you to explore every chapter with reflective care, immersing yourself in the prose that helped define the contours of world literature.`,
-      ],
-    },
-  ];
-}
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -188,7 +142,7 @@ export async function GET(
   let dbBook = null;
 
   try {
-    const fetched = await getBookBySlug(slug);
+    const fetched = catalogBook ? null : await getBookBySlug(slug);
     if (fetched) {
       dbBook = fetched;
     }
@@ -232,16 +186,14 @@ export async function GET(
 
   if (gutenbergId) {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
-
       const res = await fetch(`https://www.gutenberg.org/cache/epub/${gutenbergId}/pg${gutenbergId}.txt`, {
-        signal: controller.signal,
+        signal: AbortSignal.timeout(6000),
+        cache: "no-store",
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         },
       });
-      clearTimeout(timeoutId);
+
 
       if (res.ok) {
         const rawText = await res.text();
@@ -261,14 +213,12 @@ export async function GET(
 
   // Fallback to curated chapters if Gutenberg was unavailable or empty
   if (chapters.length === 0) {
-    chapters = buildCuratedFallback({
-      title,
-      authorName,
-      authorBio,
-      curatorNote,
-      description,
-    });
-    source = "curated";
+    chapters = [{
+      id: 1,
+      title: "About this book",
+      subtitle: "Editorial notes · Full text unavailable",
+      paragraphs: [description, curatorNote, authorBio].filter(Boolean),
+    }];
   }
 
   const responseData: ReaderResponse = {
@@ -279,7 +229,7 @@ export async function GET(
   };
 
   // Cache in-memory
-  cache.set(slug, responseData);
+  if (source === "gutenberg") cache.set(slug, responseData);
 
-  return NextResponse.json(responseData);
+  return NextResponse.json(responseData, { headers: { "Cache-Control": "no-store" } });
 }

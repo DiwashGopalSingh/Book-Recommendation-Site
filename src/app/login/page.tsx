@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { loginRedirectPath } from './redirect';
 import { AuthTabs } from '@/components/auth';
-import { signInUser, signUpUser, checkIsAuthenticated, getCurrentUser, logoutUser } from '@/lib/auth';
+import { signInUser, signUpUser, loadCurrentUser, logoutUser } from '@/lib/auth';
 import { ArrowLeft, BookOpen, ShieldCheck, Sparkles, Check, LogOut, ArrowRight, UserCheck } from 'lucide-react';
 
 function LoginContent() {
@@ -26,17 +26,11 @@ function LoginContent() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const hasActiveSession =
-      typeof window !== 'undefined' &&
-      sessionStorage.getItem('library_active_session') === 'true';
-
-    if (hasActiveSession && checkIsAuthenticated()) {
-      setIsLoggedIn(true);
-      setCurrentUser(getCurrentUser());
-    } else {
-      setIsLoggedIn(false);
-      setCurrentUser(null);
-    }
+    let active = true;
+    loadCurrentUser().then(user => {
+      if (active) { setCurrentUser(user); setIsLoggedIn(Boolean(user)); }
+    }).catch(() => {});
+    return () => { active = false; };
   }, []);
 
   const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,17 +44,14 @@ function LoginContent() {
   };
 
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     if (isSignUp) {
-      const result = signUpUser(formData.name, formData.email, formData.password);
+      const result = await signUpUser(formData.name, formData.email, formData.password);
       if (result.success) {
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('library_active_session', 'true');
-        }
         setToastMessage(`Account created! Welcome, ${result.user?.name || 'Reader'}!`);
         setTimeout(() => {
           router.push(redirectTarget);
@@ -70,11 +61,8 @@ function LoginContent() {
         setLoading(false);
       }
     } else {
-      const result = signInUser(formData.email, formData.password);
+      const result = await signInUser(formData.email, formData.password);
       if (result.success) {
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('library_active_session', 'true');
-        }
         setToastMessage(`Signed in as ${result.user?.name}! Opening library...`);
         setTimeout(() => {
           router.push(redirectTarget);
@@ -86,8 +74,8 @@ function LoginContent() {
     }
   };
 
-  const handleLogout = () => {
-    logoutUser();
+  const handleLogout = async () => {
+    await logoutUser();
     setIsLoggedIn(false);
     setCurrentUser(null);
     setFormData({ name: '', email: '', password: '' });

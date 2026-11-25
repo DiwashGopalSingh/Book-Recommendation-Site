@@ -16,7 +16,7 @@ import {
   Layers,
   Loader2,
 } from 'lucide-react';
-import { checkIsAuthenticated, getCurrentUser, logoutUser, UserProfile } from '@/lib/auth';
+import { loadCurrentUser, logoutUser, UserProfile } from '@/lib/auth';
 import { SearchResultBook } from '@/lib/catalog/search';
 import { SimilarBookMatch } from '@/lib/recommend/engine';
 import MyShelfModal from './MyShelfModal';
@@ -93,11 +93,7 @@ export function Navbar({ onOpenAuth, onOpenPreferences, savedCount }: NavbarProp
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (checkIsAuthenticated()) {
-      setUser(getCurrentUser());
-    } else {
-      setUser(null);
-    }
+    loadCurrentUser().then(setUser).catch(() => setUser(null));
   }, []);
 
   // Close dropdown on click outside
@@ -185,8 +181,8 @@ export function Navbar({ onOpenAuth, onOpenPreferences, savedCount }: NavbarProp
     router.push(`/search?q=${encodeURIComponent(q)}`);
   };
 
-  const handleLogout = () => {
-    logoutUser();
+  const handleLogout = async () => {
+    await logoutUser();
     setUser(null);
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('library_active_session');
@@ -533,7 +529,7 @@ export function Navbar({ onOpenAuth, onOpenPreferences, savedCount }: NavbarProp
       <MyShelfModal
         isOpen={isShelfModalOpen}
         onClose={() => setIsShelfModalOpen(false)}
-        onShelfUpdated={(cnt) => setShelfCount(cnt)}
+        onShelfUpdated={setShelfCount}
       />
     </header>
   );

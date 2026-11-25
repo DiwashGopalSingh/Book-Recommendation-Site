@@ -289,7 +289,6 @@ module.exports = [
     coverId: "8232013",
     description: "Dupin applies rigorous deductive analysis to newspaper accounts to reconstruct the unsolved murder of a Parisian cigar girl found floating in the Seine.",
     curatorNote: "The first fictional detective story based directly on an actual real-life unsolved crime.",
-    gutenbergId: "2148",
     openLibraryWorkId: "OL41060W",
     subjects: ["Mystery & Crime", "Forensic Ratiocination", "True Crime Fiction", "C. Auguste Dupin"]
   },
@@ -303,7 +302,6 @@ module.exports = [
     coverId: "8232014",
     description: "When the Parisian police fail to find a stolen royal blackmail letter after scouring an apartment inch by inch, Dupin finds it through psychological reasoning.",
     curatorNote: "A masterclass in psychological insight: the art of hiding things in plain sight.",
-    gutenbergId: "2149",
     openLibraryWorkId: "OL41061W",
     subjects: ["Mystery & Crime", "Psychological Deduction", "C. Auguste Dupin", "Classic Enigma"]
   },
@@ -317,7 +315,6 @@ module.exports = [
     coverId: "8232015",
     description: "William Legrand discovers a rare gold beetle and an encrypted parchment revealing the buried pirate treasure of Captain Kidd on Sullivan's Island.",
     curatorNote: "The pioneering cryptographic treasure mystery that popularized substitution ciphers worldwide.",
-    gutenbergId: "2150",
     openLibraryWorkId: "OL41062W",
     subjects: ["Mystery & Crime", "Cryptography", "Pirate Treasure", "Cipher Mystery"]
   },
@@ -373,7 +370,7 @@ module.exports = [
     coverId: "8232019",
     description: "Framed for a triple murder in a luxury hotel, Lupin must unmask an elusive, ruthless adversary known only as 'L.M.' to save his reputation.",
     curatorNote: "A dark, labyrinthine epic taking Lupin into European diplomatic high stakes.",
-    gutenbergId: "4023",
+    gutenbergId: "34758",
     openLibraryWorkId: "OL132927W",
     subjects: ["Mystery & Crime", "Arsène Lupin", "Murder Mystery", "High Stakes Intrigue"]
   },
@@ -555,7 +552,7 @@ module.exports = [
     coverId: "8232032",
     description: "Detective Gryce and Miss Butterworth collaborate to solve the stabbing murder of Felix Cabot in a room furnished only with circular furniture.",
     curatorNote: "A gripping team-up between Green's two greatest deductive protagonists.",
-    gutenbergId: "14838",
+    gutenbergId: "18761",
     openLibraryWorkId: "OL32802W",
     subjects: ["Mystery & Crime", "Detective Gryce", "Miss Butterworth", "Baffling Crime"]
   },

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import AccountSwitchListener from '@/components/auth/AccountSwitchListener';
 
 export const metadata: Metadata = {
   title: 'Padhante | Community Library & Reading Portal',
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-[#FAF7F2] text-[#1C1917] antialiased selection:bg-teal-200 selection:text-teal-900">
+        <AccountSwitchListener />
         {children}
       </body>
     </html>

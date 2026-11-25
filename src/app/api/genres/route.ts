@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { ALL_500_BOOKS, CATALOG_GENRES } from "@/lib/catalog/books-500";
-import { db, works } from "@/lib/db";
 
 export interface GenreShelf {
   id: string;

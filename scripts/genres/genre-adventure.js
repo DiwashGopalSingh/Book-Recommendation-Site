@@ -281,7 +281,7 @@ module.exports = [
     coverId: "8232160",
     description: "In 17th-century Holland, gentle botanist Cornelius van Baerle is imprisoned on false treason charges while trying to breed an elusive black tulip.",
     curatorNote: "A charming, suspenseful romantic adventure set during Dutch tulip mania.",
-    gutenbergId: "1064",
+    gutenbergId: "965",
     openLibraryWorkId: "OL15204W",
     subjects: ["Adventure", "Historical Romance", "Tulip Mania", "Dutch Republic"]
   },
@@ -662,7 +662,7 @@ module.exports = [
     coverId: "8232187",
     description: "Czarist courier Michael Strogoff undertakes a perilous 5,200-mile journey across Siberia to deliver secret dispatches to Irkutsk amid a Tartar rebellion.",
     curatorNote: "Verne's most gripping non-science-fiction historical action thriller, full of Siberian heroism.",
-    gutenbergId: "1028",
+    gutenbergId: "8987",
     openLibraryWorkId: "OL11002W",
     subjects: ["Adventure", "Siberian Trek", "Courier Mission", "Epic Action"]
   },

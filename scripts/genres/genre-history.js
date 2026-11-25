@@ -699,7 +699,6 @@ module.exports = [
     coverId: "8232334",
     description: "Prescott's sweeping historical epic of Hernando Cortés leading five hundred conquistadors into the heart of the Aztec Empire and Tenochtitlan.",
     curatorNote: "A towering literary history that brought the Aztec world and Spanish clash to life worldwide.",
-    gutenbergId: "2445",
     openLibraryWorkId: "OL10733W",
     subjects: ["History & Life", "Conquest of Mexico", "Aztec Empire", "Cortes", "Tenochtitlan"]
   }

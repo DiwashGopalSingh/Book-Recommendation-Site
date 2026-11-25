@@ -15,7 +15,7 @@ import {
   Layers,
   ArrowRight,
 } from 'lucide-react';
-import { ShelvedBookItem } from '@/lib/catalog/shelfStore';
+import type { ShelvedBookItem } from '@/lib/catalog/shelfStore';
 
 interface MyShelfModalProps {
   isOpen: boolean;
@@ -40,6 +40,7 @@ export default function MyShelfModal({
     if (!isOpen) return;
 
     let isCurrent = true;
+    setShelvedBooks([]);
     setLoading(true);
 
     async function loadShelves() {
@@ -88,19 +89,18 @@ export default function MyShelfModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug, status: newStatus }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setShelvedBooks((prev) =>
-          prev.map((item) => (item.slug === slug ? data.item : item)).filter(Boolean)
-        );
-        if (onShelfUpdated) onShelfUpdated(data.totalShelved);
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('shelf-updated', { detail: { count: data.totalShelved } }));
-        }
-        showToast(`Moved to ${formatStatusName(newStatus)}`);
+      if (!res.ok) throw new Error("Shelf update failed");
+      const data = await res.json();
+      setShelvedBooks((prev) =>
+        prev.map((item) => (item.slug === slug ? data.item : item)).filter(Boolean)
+      );
+      if (onShelfUpdated) onShelfUpdated(data.totalShelved);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('shelf-updated', { detail: { count: data.totalShelved } }));
       }
+      showToast(`Moved to ${formatStatusName(newStatus)}`);
     } catch (err) {
-      console.error('Failed to update shelf status:', err);
+      showToast("Could not save your shelf change. Please try again.");
     }
   };
 
@@ -118,19 +118,18 @@ export default function MyShelfModal({
           rating: newRating,
         }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setShelvedBooks((prev) =>
-          prev.map((item) => (item.slug === slug ? data.item : item)).filter(Boolean)
-        );
-        if (onShelfUpdated) onShelfUpdated(data.totalShelved);
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('shelf-updated', { detail: { count: data.totalShelved } }));
-        }
-        showToast(newRating ? `Rated ${newRating} stars` : 'Rating cleared');
+      if (!res.ok) throw new Error("Shelf update failed");
+      const data = await res.json();
+      setShelvedBooks((prev) =>
+        prev.map((item) => (item.slug === slug ? data.item : item)).filter(Boolean)
+      );
+      if (onShelfUpdated) onShelfUpdated(data.totalShelved);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('shelf-updated', { detail: { count: data.totalShelved } }));
       }
+      showToast(newRating ? `Rated ${newRating} stars` : 'Rating cleared');
     } catch (err) {
-      console.error('Failed to update rating:', err);
+      showToast("Could not save your shelf change. Please try again.");
     }
   };
 
@@ -141,18 +140,17 @@ export default function MyShelfModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug, status: 'remove' }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        const updated = shelvedBooks.filter((b) => b.slug !== slug);
-        setShelvedBooks(updated);
-        if (onShelfUpdated) onShelfUpdated(data.totalShelved);
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('shelf-updated', { detail: { count: data.totalShelved } }));
-        }
-        showToast(`Removed "${title}" from your shelf`);
+      if (!res.ok) throw new Error("Shelf update failed");
+      const data = await res.json();
+      const updated = shelvedBooks.filter((b) => b.slug !== slug);
+      setShelvedBooks(updated);
+      if (onShelfUpdated) onShelfUpdated(data.totalShelved);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('shelf-updated', { detail: { count: data.totalShelved } }));
       }
+      showToast(`Removed "${title}" from your shelf`);
     } catch (err) {
-      console.error('Failed to remove book from shelf:', err);
+      showToast("Could not save your shelf change. Please try again.");
     }
   };
 

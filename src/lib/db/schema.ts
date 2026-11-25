@@ -413,3 +413,9 @@ export const userBooksRelations = relations(userBooks, ({ one }) => ({
     references: [editions.id],
   }),
 }));
+
+export const readerSessions = pgTable("reader_sessions", {
+  tokenHash: text("token_hash").primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});

@@ -586,7 +586,6 @@ module.exports = [
     coverId: "8232425",
     description: "A monumental verse novel in twelve dramatic monologues examining a 1698 Rome murder trial from multiple conflicting perspectives.",
     curatorNote: "Browning's supreme masterpiece pioneering modern multi-perspective narrative structure.",
-    gutenbergId: "4023",
     openLibraryWorkId: "OL10645W",
     subjects: ["Poetry & Epics", "Robert Browning", "Dramatic Monologue", "Verse Novel", "Rome Trial"]
   },

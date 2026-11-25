@@ -96,6 +96,7 @@ function slugify(text) {
 
 const seenSlugs = new Set();
 const allBooks = [];
+const gutenbergIds = new Set();
 
 for (const genre of GENRES) {
   console.log(`Checking genre: ${genre.name} (${genre.books.length} books)`);
@@ -142,6 +143,10 @@ for (const genre of GENRES) {
       openLibraryWorkId: raw.openLibraryWorkId || undefined,
     };
 
+    if (book.gutenbergId) {
+      if (gutenbergIds.has(book.gutenbergId)) throw new Error(`Duplicate Gutenberg ID ${book.gutenbergId} on ${slug}`);
+      gutenbergIds.add(book.gutenbergId);
+    }
     allBooks.push(book);
   }
 }

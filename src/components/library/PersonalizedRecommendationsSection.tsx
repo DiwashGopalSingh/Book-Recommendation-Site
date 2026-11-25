@@ -32,7 +32,6 @@ export default function PersonalizedRecommendationsSection({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            shelvedSlugs: savedBooks,
             preferences,
             limit: 6,
           }),

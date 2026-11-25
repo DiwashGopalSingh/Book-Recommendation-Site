@@ -1,4 +1,4 @@
-import { db, client, works, editions, authors, workAuthors, subjects, workSubjects, externalIds } from "../db";
+import { getDatabase, works, editions, authors, workAuthors, subjects, workSubjects, externalIds } from "../db";
 import { runMigrations } from "../db/migrate";
 import { eq, and } from "drizzle-orm";
 
@@ -67,7 +67,7 @@ function inferAudience(subjects: string[], bookshelves: string[]): "children" | 
  */
 export async function ingestOpenSourceBooks(maxBooks = 150) {
   await runMigrations();
-  await client.waitReady;
+  const db = await getDatabase();
   console.log(`\n======================================================`);
   console.log(` Starting Catalog Ingestion of Open-Source Classics   `);
   console.log(` Source: Project Gutenberg Public Domain Catalog     `);
@@ -91,14 +91,12 @@ export async function ingestOpenSourceBooks(maxBooks = 150) {
       });
 
       if (!res.ok) {
-        console.warn(`Gutendex returned status ${res.status}. Halting pagination.`);
-        break;
+        throw new Error("Gutendex returned HTTP " + res.status);
       }
 
       data = await res.json();
     } catch (err) {
-      console.error(`Failed to fetch page ${page}:`, err);
-      break;
+      throw new Error("Failed to fetch catalog page " + page, { cause: err });
     }
 
     if (!data.results || data.results.length === 0) {
@@ -298,10 +296,11 @@ export async function ingestOpenSourceBooks(maxBooks = 150) {
   }
 
   console.log(`\n\n✓ Ingestion complete! Added ${totalInserted} open-source books to the community database.\n`);
+  return totalInserted;
 }
 
 // Run directly from CLI
-if (require.main === module || process.argv[1]?.includes("ingest")) {
+if (require.main === module) {
   const count = parseInt(process.argv[2] || "150", 10);
   ingestOpenSourceBooks(count)
     .then(() => process.exit(0))

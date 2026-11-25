@@ -177,7 +177,7 @@ module.exports = [
     coverId: "8232055",
     description: "Post-Civil War Baltimore Gun Club members construct the Columbiad, a massive 900-foot cannon in Florida designed to launch human astronauts into space.",
     curatorNote: "Remarkably accurate spaceflight calculations predicting lunar launch location and weightlessness.",
-    gutenbergId: "83",
+    gutenbergId: "8986",
     openLibraryWorkId: "OL10993W",
     subjects: ["Science Fiction", "Space Exploration", "Lunar Mission", "Prophetic Science"]
   },
@@ -191,7 +191,7 @@ module.exports = [
     coverId: "8232056",
     description: "Barbican, Nicholl, and Ardan orbit the lunar craters and dark side of the Moon inside their aluminum projectile before executing an oceanic splashdown.",
     curatorNote: "The thrilling second half of Verne's historic space travel saga, predicting Pacific splashdowns.",
-    gutenbergId: "83",
+    gutenbergId: "16457",
     openLibraryWorkId: "OL10994W",
     subjects: ["Science Fiction", "Lunar Orbit", "Spaceflight", "Astronomy"]
   },
@@ -345,7 +345,7 @@ module.exports = [
     coverId: "8232067",
     description: "Pursuing the villainous Matai Shang and Thurid to the frozen northern polar cap of Mars, John Carter fights through the Yellow Martian domain of Okar.",
     curatorNote: "The epic climax of the initial Barsoom trilogy crowning Carter as supreme Warlord.",
-    gutenbergId: "78",
+    gutenbergId: "68",
     openLibraryWorkId: "OL59283W",
     subjects: ["Science Fiction", "Planetary Romance", "Barsoom", "Polar Adventure"]
   },

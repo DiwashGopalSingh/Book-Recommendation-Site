@@ -8,6 +8,20 @@
       "when": 1790946505828,
       "tag": "0000_fat_sir_ram",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795533935438,
+      "tag": "0001_reader_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795533935439,
+      "tag": "0002_correct_catalog_ids",
+      "breakpoints": true
     }
   ]
 }

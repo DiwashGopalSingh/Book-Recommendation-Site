@@ -91,6 +91,7 @@ export default function BookReaderPage({
         if (!isMounted) return;
         setData(json);
 
+        setCurrentChapterIndex(0);
         // Restore saved chapter index
         try {
           const savedChap = localStorage.getItem(`reader_chapter_${slug}`);
@@ -505,7 +506,7 @@ export default function BookReaderPage({
               <div>
                 <h3 className="font-serif font-bold text-base">Table of Contents</h3>
                 <p className={`text-xs ${themeStyles.muted}`}>
-                  {data.chapters.length} chapters · {data.source === "gutenberg" ? "Gutenberg Full Edition" : "Curated Edition"}
+                  {data.chapters.length} chapters · {data.source === "gutenberg" ? "Gutenberg Full Edition" : "Editorial notes · Full text unavailable"}
                 </p>
               </div>
               <button

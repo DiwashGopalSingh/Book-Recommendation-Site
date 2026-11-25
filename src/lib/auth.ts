@@ -17,218 +17,64 @@ export interface UserProfile {
   preferences?: UserPreferences;
 }
 
-const AUTH_COOKIE_NAME = 'cl_session';
-const USER_STORAGE_KEY = 'library_user';
+const profileKey = 'library_user';
+const preferencesKey = (email: string) => 'library_preferences_' + email;
 
-/**
- * Check if the user is authenticated in the browser.
- * Requires BOTH a valid auth cookie AND a stored user profile.
- * A stale cookie alone (e.g. from a previous session) is not enough.
- */
-export function checkIsAuthenticated(): boolean {
-  if (typeof window === 'undefined') return false;
-
-  // Check cookie
-  const hasCookie = document.cookie
-    .split(';')
-    .some((item) => item.trim().startsWith(`${AUTH_COOKIE_NAME}=`));
-
-  // Check localStorage for a valid user object
-  let hasUser = false;
-  try {
-    const raw = localStorage.getItem(USER_STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      hasUser = !!(parsed?.email); // must be a real user object with an email
-    }
-  } catch (_) {}
-
-  // Both must be present — a stale cookie alone won't bypass the login gate
-  return hasCookie && hasUser;
-}
-
-/**
- * Clear any stale/incomplete session data (e.g. cookie without user profile, or vice versa).
- * Call this on app load to ensure a consistent auth state.
- */
-export function clearStaleSession(): void {
-  if (typeof window === 'undefined') return;
-
-  const hasCookie = document.cookie
-    .split(';')
-    .some((item) => item.trim().startsWith(`${AUTH_COOKIE_NAME}=`));
-
-  let hasUser = false;
-  try {
-    const raw = localStorage.getItem(USER_STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      hasUser = !!(parsed?.email);
-    }
-  } catch (_) {}
-
-  // If one exists without the other, clear everything for a clean state
-  if (hasCookie !== hasUser) {
-    document.cookie = `${AUTH_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
-    localStorage.removeItem(USER_STORAGE_KEY);
-  }
-}
-
-/**
- * Retrieve current user profile
- */
 export function getCurrentUser(): UserProfile | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
+  return JSON.parse(localStorage.getItem(profileKey) || 'null');
+}
 
+function cacheProfile(user: UserProfile | null) {
+  if (user) {
+    user.preferences = JSON.parse(localStorage.getItem(preferencesKey(user.email)) || 'null') ?? undefined;
+    localStorage.setItem(profileKey, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(profileKey);
+  }
+  return user;
+}
+
+export async function loadCurrentUser() {
+  const response = await fetch('/api/auth', { cache: 'no-store' });
+  if (!response.ok) throw new Error('Unable to verify session');
+  return cacheProfile((await response.json()).user);
+}
+
+async function authenticate(action: string, email: string, password: string, name?: string):
+  Promise<{success: boolean; user?: UserProfile; error?: string}> {
   try {
-    const raw = localStorage.getItem(USER_STORAGE_KEY);
-    if (raw) {
-      return JSON.parse(raw);
-    }
-  } catch (_) {}
-
-  return null;
-}
-
-/**
- * Perform sign in with email and password
- */
-export function signInUser(
-  email: string,
-  pass: string
-): { success: boolean; user?: UserProfile; error?: string } {
-  const cleanEmail = email.trim().toLowerCase();
-
-  // Check for locally registered accounts in localStorage
-  if (typeof window !== 'undefined') {
-    try {
-      const storedAccounts = JSON.parse(
-        localStorage.getItem('registered_accounts') || '[]'
-      );
-      const matched = storedAccounts.find(
-        (acc: any) =>
-          acc.email.toLowerCase() === cleanEmail && acc.password === pass
-      );
-      if (matched) {
-        const user: UserProfile = {
-          email: matched.email,
-          name: matched.name || 'Community Reader',
-          joinedDate: 'Recent',
-          preferences: matched.preferences || undefined,
-        };
-        saveUserSession(user);
-        return { success: true, user };
-      }
-    } catch (_) {}
-  }
-
-  return {
-    success: false,
-    error: 'Invalid email or password. Please verify your credentials or create an account.',
-  };
-}
-
-/**
- * Perform sign up and auto-login
- */
-export function signUpUser(
-  name: string,
-  email: string,
-  pass: string,
-  preferences?: UserPreferences
-): { success: boolean; user?: UserProfile; error?: string } {
-  const cleanEmail = email.trim().toLowerCase();
-  if (!cleanEmail || !pass) {
-    return { success: false, error: 'Email and password are required.' };
-  }
-
-  const user: UserProfile = {
-    email: cleanEmail,
-    name: name.trim() || 'Community Reader',
-    joinedDate: 'Today',
-    preferences: preferences || undefined,
-  };
-
-  if (typeof window !== 'undefined') {
-    try {
-      const stored = JSON.parse(
-        localStorage.getItem('registered_accounts') || '[]'
-      );
-      // Remove any existing with same email
-      const filtered = stored.filter((a: any) => a.email !== cleanEmail);
-      filtered.push({
-        name: user.name,
-        email: cleanEmail,
-        password: pass,
-        preferences: user.preferences,
-      });
-      localStorage.setItem('registered_accounts', JSON.stringify(filtered));
-    } catch (_) {}
-  }
-
-  saveUserSession(user);
-  return { success: true, user };
-}
-
-/**
- * Update current user preferences and broadcast change
- */
-export function updateUserPreferences(preferences: UserPreferences): UserProfile | null {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    const raw = localStorage.getItem(USER_STORAGE_KEY);
-    if (!raw) return null;
-    const user: UserProfile = JSON.parse(raw);
-    user.preferences = preferences;
-
-    // Update active user session
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-
-    // Update registered accounts list
-    const stored = JSON.parse(
-      localStorage.getItem('registered_accounts') || '[]'
-    );
-    const updated = stored.map((acc: any) => {
-      if (acc.email?.toLowerCase() === user.email?.toLowerCase()) {
-        return { ...acc, preferences };
-      }
-      return acc;
+    const response = await fetch('/api/auth', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, email: email.trim(), password, name }),
     });
-    localStorage.setItem('registered_accounts', JSON.stringify(updated));
-
-    // Notify listeners
+    const data = await response.json();
+    if (!response.ok) return { success: false, error: data.error };
+    const user = cacheProfile(data.user)!;
+    localStorage.setItem('library_account_change', String(Date.now()));
     window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user } }));
-    window.dispatchEvent(new CustomEvent('preferences-updated', { detail: { preferences } }));
-
-    return user;
-  } catch (err) {
-    console.error('Failed to update user preferences:', err);
-    return null;
+    return { success: true, user };
+  } catch {
+    return { success: false, error: 'Could not reach the sign-in service. Please try again.' };
   }
 }
 
-/**
- * Save user session to cookie and localStorage
- */
-export function saveUserSession(user: UserProfile) {
-  if (typeof window === 'undefined') return;
+export const signInUser = (email: string, password: string) => authenticate('signin', email, password);
+export const signUpUser = (name: string, email: string, password: string) => authenticate('signup', email, password, name);
 
-  // Set auth cookie valid for 7 days
-  const maxAge = 60 * 60 * 24 * 7;
-  document.cookie = `${AUTH_COOKIE_NAME}=true; path=/; max-age=${maxAge}; SameSite=Lax`;
-  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+export function updateUserPreferences(preferences: UserPreferences) {
+  const user = getCurrentUser();
+  if (!user) return null;
+  localStorage.setItem(preferencesKey(user.email), JSON.stringify(preferences));
+  cacheProfile(user);
+  window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user } }));
+  window.dispatchEvent(new CustomEvent('preferences-updated', { detail: { preferences } }));
+  return user;
 }
 
-/**
- * Clear session cookie and storage
- */
-export function logoutUser() {
-  if (typeof window === 'undefined') return;
-
-  document.cookie = `${AUTH_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
-  localStorage.removeItem(USER_STORAGE_KEY);
+export async function logoutUser() {
+  const response = await fetch('/api/auth', { method: 'DELETE' });
+  if (!response.ok) throw new Error('Sign-out failed');
+  cacheProfile(null);
+  localStorage.setItem('library_account_change', String(Date.now()));
+  window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null } }));
 }
-

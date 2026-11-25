@@ -1,4 +1,4 @@
-import { db, client, works, editions, authors, workAuthors, subjects, workSubjects, curatedLists, curatedListItems } from "../db";
+import { getDatabase, works, editions, authors, workAuthors, subjects, workSubjects, curatedLists, curatedListItems } from "../db";
 import { eq, asc, desc } from "drizzle-orm";
 
 export interface BookDetail {
@@ -22,7 +22,7 @@ export interface BookDetail {
  */
 export async function getCuratedListWithBooks(slug: string) {
   try {
-    await client.waitReady;
+    const db = await getDatabase();
     const list = await db
       .select()
       .from(curatedLists)
@@ -112,7 +112,7 @@ export async function getCuratedListWithBooks(slug: string) {
  */
 export async function getBookBySlug(slug: string) {
   try {
-    await client.waitReady;
+    const db = await getDatabase();
     const workList = await db
       .select()
       .from(works)
