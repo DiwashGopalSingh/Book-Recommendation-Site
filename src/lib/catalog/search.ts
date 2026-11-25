@@ -1,4 +1,4 @@
-import { ALL_500_BOOKS, CatalogBook } from "./books-500";
+import { getDiscoveryBooks, type DiscoveryBook } from "./discovery";
 import { getSimilarBooks, SimilarBookMatch } from "@/lib/recommend/engine";
 
 export interface SearchResultBook {
@@ -11,7 +11,7 @@ export interface SearchResultBook {
   firstPublishYear: number | null;
   audienceLevel: string;
   coverUrl: string;
-  pageCount: number;
+  pageCount: number | null;
   description: string | null;
   subjects: string[];
   genre: string;
@@ -56,9 +56,10 @@ export async function searchCatalog(filters: SearchFilters): Promise<{
   if (rawQuery && !cleanQ) return { books: [], total: 0, recommendations: [] };
   const isSingleLetter = rawQuery.length === 1 && /[a-z0-9]/.test(rawQuery);
 
-  let candidates: { book: CatalogBook; score: number }[] = [];
+  const catalog = await getDiscoveryBooks();
+  const candidates: { book: DiscoveryBook; score: number }[] = [];
 
-  for (const b of ALL_500_BOOKS) {
+  for (const b of catalog) {
     // 1. Audience Filter
     if (audienceLevel && audienceLevel !== "all") {
       if (b.audienceLevel !== audienceLevel && b.audienceLevel !== "all") {
@@ -95,7 +96,7 @@ export async function searchCatalog(filters: SearchFilters): Promise<{
 
     if (isSingleLetter) {
       // A) SINGLE LETTER SEARCH:
-      // Show books whose title starts with that letter (either raw or after 'The/A/An')
+      // Match the beginning of any title word, ranking full-title prefixes first.
       const rawStarts = titleLower.startsWith(rawQuery);
       const strippedStarts = strippedTitle.startsWith(rawQuery);
       const wordStarts = titleWords.some((w) => w.startsWith(rawQuery));
@@ -198,12 +199,12 @@ export async function searchCatalog(filters: SearchFilters): Promise<{
   if (formattedBooks.length > 0) {
     const topSlug = formattedBooks[0].slug;
     const directResultsSlugs = new Set(formattedBooks.map((fb) => fb.slug));
-    recommendations = getSimilarBooks(topSlug, 6).filter(
+    recommendations = getSimilarBooks(topSlug, 6, catalog).filter(
       (r) => !directResultsSlugs.has(r.slug)
     );
   } else if (rawQuery) {
     // If no direct title match, provide curated recommendations
-    recommendations = getSimilarBooks("the-hound-of-the-baskervilles", 6);
+    recommendations = getSimilarBooks("the-hound-of-the-baskervilles", 6, catalog);
   }
 
   return {

@@ -1,3 +1,4 @@
+import { getDiscoveryBooks } from "@/lib/catalog/discovery";
 import { NextRequest, NextResponse } from "next/server";
 import { getSimilarBooks, getPersonalizedRecommendations } from "@/lib/recommend/engine";
 import { getAllShelvedBooks } from "@/lib/catalog/shelfStore";
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     // If a book slug is specified, return similar books for that specific work
     if (slug) {
-      const similar = getSimilarBooks(slug, limit);
+      const similar = getSimilarBooks(slug, limit, await getDiscoveryBooks());
       return NextResponse.json({
         bookSlug: slug,
         similar,
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
     }
 
     const shelvedSlugs = await recommendationShelf(req);
-    const reco = getPersonalizedRecommendations(shelvedSlugs, limit);
+    const reco = getPersonalizedRecommendations(shelvedSlugs, limit, undefined, await getDiscoveryBooks());
     return NextResponse.json(reco, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     console.error("GET /api/recommendations error:", error);
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
     const { limit = 8, preferences } = body;
     const shelvedSlugs = await recommendationShelf(req, body.shelvedSlugs);
 
-    const reco = getPersonalizedRecommendations(shelvedSlugs, limit, preferences);
+    const reco = getPersonalizedRecommendations(shelvedSlugs, limit, preferences, await getDiscoveryBooks());
     return NextResponse.json(reco, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     console.error("POST /api/recommendations error:", error);

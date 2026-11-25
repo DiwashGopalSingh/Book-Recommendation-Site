@@ -1,12 +1,14 @@
 import similaritiesData from "@/lib/catalog/book-similarities.json";
-import { ALL_500_BOOKS as ALL_CATALOG_BOOKS, CatalogBook } from "@/lib/catalog/books-500";
+import { ALL_500_BOOKS } from "@/lib/catalog/books-500";
+
+import type { DiscoveryBook } from "@/lib/catalog/discovery";
 
 export interface SimilarBookMatch {
   slug: string;
   title: string;
   authorName: string;
   authorSlug: string;
-  year: number;
+  year: number | null;
   coverUrl: string;
   genreBadge: string;
   genreSlug: string;
@@ -23,32 +25,26 @@ export interface RecommendationResponse {
   recommendations: (SimilarBookMatch & { sourceShelvedTitle?: string })[];
 }
 
+const builtInSlugs = new Set(ALL_500_BOOKS.map(book => book.slug));
 const typedSimilarities: Record<string, SimilarBookMatch[]> = similaritiesData as any;
 
-/**
- * 1. Get Content-Based "Similar Books" for a given book slug.
- * Instant O(1) lookup from the precomputed TF-IDF + Subject affinity graph.
- */
-export function getSimilarBooks(slug: string, limit = 8): SimilarBookMatch[] {
-  if (typedSimilarities[slug] && typedSimilarities[slug].length > 0) {
-    return typedSimilarities[slug].slice(0, limit);
-  }
-
-  // Fallback: on-the-fly subject matching if slug wasn't in static map
-  const target = ALL_CATALOG_BOOKS.find((b) => b.slug === slug);
+export function getSimilarBooks(slug: string, limit = 8, catalog: DiscoveryBook[] = ALL_500_BOOKS): SimilarBookMatch[] {
+  const precomputed = typedSimilarities[slug] ?? [];
+  const target = catalog.find(b => b.slug === slug);
   if (!target) return [];
 
   const targetSubjects = new Set(target.subjects.map((s) => s.toLowerCase()));
 
-  const scored = ALL_CATALOG_BOOKS
+  const candidates = precomputed.length ? catalog.filter(book => !builtInSlugs.has(book.slug)) : catalog;
+  const scored = candidates
     .filter((b) => b.slug !== slug)
     .map((candidate) => {
       const shared = candidate.subjects.filter((s) => targetSubjects.has(s.toLowerCase()));
-      const authorMatch = candidate.authorSlug === target.authorSlug ? 1 : 0;
-      const genreMatch = candidate.genreSlug === target.genreSlug ? 1 : 0;
+      const authorMatch = target.authorSlug && candidate.authorSlug === target.authorSlug ? 1 : 0;
+      const genreMatch = target.genreSlug && candidate.genreSlug === target.genreSlug ? 1 : 0;
       const score = (shared.length * 2 + genreMatch * 2 + authorMatch * 3) / 10;
       
-      let reason = `Shared genre in ${candidate.genreBadge}`;
+      let reason = genreMatch ? `Shared genre in ${candidate.genreBadge}` : "Related library title";
       if (authorMatch) reason = `Same author (${candidate.authorName})`;
       else if (shared.length > 0) reason = `Shared themes: ${shared.slice(0, 2).join(', ')}`;
 
@@ -68,9 +64,9 @@ export function getSimilarBooks(slug: string, limit = 8): SimilarBookMatch[] {
         sharedSubjects: shared,
       };
     })
-    .sort((a, b) => b.score - a.score);
+    .filter(match => match.score > 0);
 
-  return scored.slice(0, limit);
+  return [...precomputed, ...scored].sort((a, b) => b.score - a.score).slice(0, limit);
 }
 
 /**
@@ -90,7 +86,8 @@ export interface UserPreferencesInput {
 export function getPersonalizedRecommendations(
   shelvedSlugs: string[] = [],
   limit = 8,
-  preferences?: UserPreferencesInput
+  preferences?: UserPreferencesInput,
+  catalog: DiscoveryBook[] = ALL_500_BOOKS
 ): RecommendationResponse {
   const hasShelved = Array.isArray(shelvedSlugs) && shelvedSlugs.length > 0;
   const hasPreferences = Boolean(
@@ -113,8 +110,8 @@ export function getPersonalizedRecommendations(
     ];
 
     const coldStartBooks: SimilarBookMatch[] = coldStartSlugs
-      .map((slug) => ALL_CATALOG_BOOKS.find((b) => b.slug === slug))
-      .filter((b): b is CatalogBook => Boolean(b))
+      .map((slug) => catalog.find((b) => b.slug === slug))
+      .filter((b): b is DiscoveryBook => Boolean(b))
       .map((b) => ({
         slug: b.slug,
         title: b.title,
@@ -140,7 +137,7 @@ export function getPersonalizedRecommendations(
   }
 
   const shelvedSet = new Set(shelvedSlugs || []);
-  const userBooks = ALL_CATALOG_BOOKS.filter((b) => shelvedSet.has(b.slug));
+  const userBooks = catalog.filter((b) => shelvedSet.has(b.slug));
 
   // Build taste profile distributions
   const preferredGenres: Record<string, number> = {};
@@ -156,8 +153,8 @@ export function getPersonalizedRecommendations(
 
   // 2. Shelved books enrich the profile
   for (const b of userBooks) {
-    preferredGenres[b.genreSlug] = (preferredGenres[b.genreSlug] || 0) + 1.2;
-    preferredAuthors[b.authorSlug] = (preferredAuthors[b.authorSlug] || 0) + 2.0;
+    if (b.genreSlug) preferredGenres[b.genreSlug] = (preferredGenres[b.genreSlug] || 0) + 1.2;
+    if (b.authorSlug) preferredAuthors[b.authorSlug] = (preferredAuthors[b.authorSlug] || 0) + 2.0;
     for (const subj of b.subjects) {
       const sKey = subj.toLowerCase().trim();
       preferredSubjects[sKey] = (preferredSubjects[sKey] || 0) + 1.0;
@@ -167,7 +164,7 @@ export function getPersonalizedRecommendations(
   // Score candidate books that the user has NOT yet shelved
   const candidateScores: (SimilarBookMatch & { sourceShelvedTitle?: string })[] = [];
 
-  for (const candidate of ALL_CATALOG_BOOKS) {
+  for (const candidate of catalog) {
     if (shelvedSet.has(candidate.slug)) continue; // Filter out already shelved books
 
     let score = 0;
@@ -219,7 +216,7 @@ export function getPersonalizedRecommendations(
     }
 
     // Direct pairwise similarity connection to one of user's shelved books
-    let bestSourceBook: CatalogBook | null = null;
+    let bestSourceBook: DiscoveryBook | null = null;
     let highestPairSim = 0;
 
     for (const userB of userBooks) {
@@ -235,7 +232,7 @@ export function getPersonalizedRecommendations(
       score += highestPairSim * 1.5;
     }
 
-    if (score > 0.35) {
+    if (score > 0.35 || matchingSubjects.length > 0) {
       let reason = "";
       if (explicitInterestMatch) {
         const titleCaseInterest = explicitInterestMatch
@@ -249,7 +246,7 @@ export function getPersonalizedRecommendations(
         reason = `Because you shelved "${bestSourceBook.title}"`;
       } else if (preferredAuthors[candidate.authorSlug]) {
         reason = `Author match: more by ${candidate.authorName}`;
-      } else if (matchingSubjects.length >= 2) {
+      } else if (matchingSubjects.length > 0) {
         reason = `Strong match for your interest in ${matchingSubjects.slice(0, 2).join(' & ')}`;
       } else {
         reason = `Recommended for your ${candidate.genreBadge} taste profile`;
@@ -278,13 +275,17 @@ export function getPersonalizedRecommendations(
   candidateScores.sort((a, b) => b.score - a.score);
 
   const topRecommendations = candidateScores.slice(0, limit);
+  if (hasShelved && topRecommendations.length === 0 && limit > 0) {
+    const starter = getPersonalizedRecommendations([], limit, undefined, catalog.filter(book => !shelvedSet.has(book.slug)));
+    return { ...starter, isColdStart: false, explanationNote: "Your shelf has no matching titles yet. Here are curated picks to explore." };
+  }
 
   // Craft explanation note
   let explanationNote = "";
   if (hasPreferences && preferences?.genres && preferences.genres.length > 0) {
     const genreNames = preferences.genres
       .map((gSlug) => {
-        const found = ALL_CATALOG_BOOKS.find((b) => b.genreSlug === gSlug);
+        const found = catalog.find((b) => b.genreSlug === gSlug);
         return found ? found.genreBadge : gSlug;
       })
       .slice(0, 3);

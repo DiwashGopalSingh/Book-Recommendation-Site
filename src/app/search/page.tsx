@@ -40,6 +40,8 @@ const SUBJECT_FILTERS = [
   "Wit & Satire",
 ];
 
+const PAGE_SIZE = 24;
+
 function SearchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,6 +54,9 @@ function SearchPageContent() {
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [audience, setAudience] = useState(initialAudience);
   const [subject, setSubject] = useState(initialSubject);
+  const [page, setPage] = useState(0);
+  const [searchError, setSearchError] = useState(false);
+  const [retry, setRetry] = useState(0);
   const [books, setBooks] = useState<SearchResultBook[]>([]);
   const [recommendations, setRecommendations] = useState<SimilarBookMatch[]>([]);
   const [total, setTotal] = useState(0);
@@ -64,6 +69,7 @@ function SearchPageContent() {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(query);
+      setPage(0);
     }, 180);
     return () => clearTimeout(handler);
   }, [query]);
@@ -72,16 +78,24 @@ function SearchPageContent() {
   useEffect(() => {
     let isCurrent = true;
     setLoading(true);
+    setSearchError(false);
 
-    const params = new URLSearchParams();
+    const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(page * PAGE_SIZE) });
     if (debouncedQuery) params.set("q", debouncedQuery);
     if (audience && audience !== "all") params.set("audience", audience);
     if (subject && subject !== "All Subjects") params.set("subject", subject);
 
     fetch(`/api/search?${params.toString()}`)
-      .then((res) => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Search request failed");
+        return res.json();
+      })
       .then((data) => {
         if (!isCurrent) return;
+        if (page > 0 && page * PAGE_SIZE >= data.total) {
+          setPage(Math.max(0, Math.ceil(data.total / PAGE_SIZE) - 1));
+          return;
+        }
         setBooks(data.books || []);
         setRecommendations(data.recommendations || []);
         setTotal(data.total || 0);
@@ -90,6 +104,7 @@ function SearchPageContent() {
       })
       .catch((err) => {
         if (!isCurrent) return;
+        setSearchError(true);
         console.error("Search fetch error:", err);
         setLoading(false);
       });
@@ -97,7 +112,7 @@ function SearchPageContent() {
     return () => {
       isCurrent = false;
     };
-  }, [debouncedQuery, audience, subject]);
+  }, [debouncedQuery, audience, subject, page, retry]);
 
   useEffect(() => {
     let active = true;
@@ -160,7 +175,7 @@ function SearchPageContent() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search 500 books, authors, themes..."
+              placeholder="Search by book title or author"
               className="w-full h-10 pl-9 sm:pl-10 pr-9 rounded-xl bg-[var(--surface)] border border-[var(--line)] text-base sm:text-sm text-[var(--ink)] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--shelf-teal)]/40 transition-all shadow-xs"
               autoFocus
             />
@@ -176,7 +191,7 @@ function SearchPageContent() {
           </div>
 
           <div className="text-xs font-semibold text-[var(--shelf-teal)] uppercase tracking-wider hidden md:block flex-none">
-            {loading ? "Searching 500 books..." : `${total} books found (${tookMs}ms)`}
+            {loading ? "Searching the catalog..." : searchError ? "" : `${total} books found (${tookMs}ms)`}
           </div>
         </div>
       </header>
@@ -193,7 +208,7 @@ function SearchPageContent() {
             {AUDIENCE_FILTERS.map((f) => (
               <button
                 key={f.value}
-                onClick={() => setAudience(f.value)}
+                onClick={() => { setAudience(f.value); setPage(0); }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   audience === f.value
                     ? "bg-[var(--shelf-teal)] text-white shadow-sm"
@@ -213,7 +228,7 @@ function SearchPageContent() {
             {SUBJECT_FILTERS.map((subj) => (
               <button
                 key={subj}
-                onClick={() => setSubject(subj)}
+                onClick={() => { setSubject(subj); setPage(0); }}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
                   subject === subj
                     ? "bg-[var(--bookmark-amber)] text-white font-semibold shadow-sm"
@@ -244,6 +259,11 @@ function SearchPageContent() {
               />
             ))}
           </div>
+        ) : searchError ? (
+          <div role="alert" className="py-12 text-center">
+            <p>Could not load your search results.</p>
+            <button className="mt-3 underline" onClick={() => setRetry(value => value + 1)}>Try again</button>
+          </div>
         ) : books.length === 0 ? (
           /* Empty Search State with Smart Recommendations */
           <div className="py-12 flex flex-col items-center">
@@ -258,6 +278,7 @@ function SearchPageContent() {
                   setQuery("");
                   setAudience("all");
                   setSubject("All Subjects");
+                  setPage(0);
                 }}
                 className="mt-4 px-4 py-2 rounded-xl bg-[var(--shelf-teal)] text-white text-xs font-semibold hover:brightness-110 shadow-sm cursor-pointer"
               >
@@ -326,13 +347,13 @@ function SearchPageContent() {
               <div>
                 <h2 className="text-xl md:text-2xl font-serif font-bold text-[var(--ink)]">
                   {debouncedQuery.trim().length === 1
-                    ? `Books Starting With "${debouncedQuery.trim().toUpperCase()}"`
+                    ? `Titles With a Word Starting With "${debouncedQuery.trim().toUpperCase()}"`
                     : debouncedQuery.trim()
                     ? `Books Matching "${debouncedQuery.trim()}"`
                     : "Complete Library Catalog"}
                 </h2>
                 <p className="text-xs text-[var(--muted)] mt-1">
-                  Showing {books.length} of {total} title{total === 1 ? "" : "s"}
+                  Showing {page * PAGE_SIZE + 1}–{page * PAGE_SIZE + books.length} of {total} title{total === 1 ? "" : "s"}
                 </p>
               </div>
             </div>
@@ -404,6 +425,16 @@ function SearchPageContent() {
                 );
               })}
             </div>
+
+            {total > PAGE_SIZE && (
+              <nav aria-label="Search result pages" className="mt-6 flex items-center justify-center gap-4 text-sm">
+                <button disabled={page === 0} onClick={() => setPage(page - 1)}
+                  className="rounded border px-3 py-2 disabled:opacity-40">Previous</button>
+                <span aria-live="polite">Page {page + 1} of {Math.ceil(total / PAGE_SIZE)}</span>
+                <button disabled={(page + 1) * PAGE_SIZE >= total} onClick={() => setPage(page + 1)}
+                  className="rounded border px-3 py-2 disabled:opacity-40">Next</button>
+              </nav>
+            )}
 
             {/* Smart Recommendations Below Results */}
             {recommendations.length > 0 && (
